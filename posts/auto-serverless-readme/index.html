@@ -184,7 +184,7 @@
     
     <span class="post-meta mr-2">
       <i class="iconfont icon-chart"></i>
-      669 字
+      682 字
     </span>
   
 
@@ -228,7 +228,7 @@
             
               <p class="note note-info">
                 
-                  本文最后更新于：2020年12月29日 下午
+                  本文最后更新于：2021年1月8日 晚上
                 
               </p>
             
@@ -237,8 +237,7 @@
 <p><strong>有任何问题可以联系我：<a href="mailto:me@neow.cc">me@neow.cc</a></strong></p>
 <p>目前只适用于西南大学晨晚检签到系统</p>
 <hr>
-<h3 id="2、下载"><a href="#2、下载" class="headerlink" title="2、下载"></a>2、下载</h3><p><a href="https://share.neoniou.com/serverless.zip" target="_blank" rel="noopener">下载链接1</a></p>
-<p><a href="http://neowmoe.huangenet.cn/download/serverless.zip" target="_blank" rel="noopener">备用链接</a></p>
+<h3 id="2、下载"><a href="#2、下载" class="headerlink" title="2、下载"></a>2、下载</h3><p><a href="https://share.neoniou.com/serverless/" target="_blank" rel="noopener">下载链接1</a></p>
 <p>下载后请解压：</p>
 <p>解压后目录：</p>
 <figure class="highlight nimrod"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><code class="hljs nimrod">|-<span class="hljs-built_in">auto</span>-cpdaily-serverless.jar	<span class="hljs-comment">#主程序</span><br>|-daily.properties				<span class="hljs-comment">#配置文件</span><br></code></pre></td></tr></table></figure>
@@ -246,7 +245,7 @@
 
 
 <h3 id="3、配置"><a href="#3、配置" class="headerlink" title="3、配置"></a>3、配置</h3><p>右键记事本打开 <strong>daily.properties</strong> 即可</p>
-<figure class="highlight properties"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><code class="hljs properties"><span class="hljs-comment">#学号</span><br><span class="hljs-attr">username</span>=<span class="hljs-string">xxxxxxxxxxxxxxx</span><br><br><span class="hljs-comment">#密码，为身份证后六位</span><br><span class="hljs-attr">password</span>=<span class="hljs-string">123456</span><br><br><span class="hljs-comment">#打卡位置，请使用 unicode 编码填写</span><br><span class="hljs-comment">#西南大学转换为 unicode编码 为 ：\u897f\u5357\u5927\u5b66</span><br><span class="hljs-comment">#改为你自己平时定位的地址名字即可，为中文地址</span><br><span class="hljs-comment">#可以在这个网站转换编码 http://tool.chinaz.com/Tools/Unicode.aspx?qq-pf-to=pcqq.c2c</span><br><span class="hljs-attr">position</span>=<span class="hljs-string">\u897f\u5357\u5927\u5b66</span><br><br><span class="hljs-comment">#打卡地址的经纬度，保留6位小数</span><br><span class="hljs-comment">#可以在这个网站查询打卡位置的经纬度 http://api.map.baidu.com/lbsapi/getpoint/</span><br><span class="hljs-attr">longitude</span>=<span class="hljs-string">106.430691</span><br><span class="hljs-attr">latitude</span>=<span class="hljs-string">29.826659</span><br><br><span class="hljs-comment">#server酱的推送Key，可以将打卡结果推送到微信</span><br><span class="hljs-comment">#具体配置方法请看说明手册</span><br><span class="hljs-attr">scKey</span>=<span class="hljs-string">xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx</span><br></code></pre></td></tr></table></figure>
+<figure class="highlight properties"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><code class="hljs properties"><span class="hljs-comment">#学号</span><br><span class="hljs-attr">username</span>=<span class="hljs-string">xxxxxxxxxxxxxxx</span><br><br><span class="hljs-comment">#密码，为身份证后六位</span><br><span class="hljs-attr">password</span>=<span class="hljs-string">123456</span><br><br><span class="hljs-comment">#打卡位置，请使用 unicode 编码填写</span><br><span class="hljs-comment">#西南大学转换为 unicode编码 为 ：\u897f\u5357\u5927\u5b66</span><br><span class="hljs-comment">#改为你自己平时定位的地址名字即可，为中文地址</span><br><span class="hljs-comment">#可以在这个网站转换编码 http://tool.chinaz.com/Tools/Unicode.aspx?qq-pf-to=pcqq.c2c</span><br><span class="hljs-attr">position</span>=<span class="hljs-string">\u897f\u5357\u5927\u5b66</span><br><br><span class="hljs-comment">#打卡地址的经纬度，保留6位小数</span><br><span class="hljs-comment">#可以在这个网站查询打卡位置的经纬度 http://api.map.baidu.com/lbsapi/getpoint/</span><br><span class="hljs-attr">longitude</span>=<span class="hljs-string">106.430691</span><br><span class="hljs-attr">latitude</span>=<span class="hljs-string">29.826659</span><br><br><span class="hljs-comment">#是否启用查寝功能，true为启用，false为不启用</span><br><span class="hljs-attr">activeAttendance</span>=<span class="hljs-string">true</span><br><br><span class="hljs-comment">#server酱的推送Key，可以将打卡结果推送到微信</span><br><span class="hljs-comment">#具体配置方法请看说明手册</span><br><span class="hljs-attr">scKey</span>=<span class="hljs-string"></span><br></code></pre></td></tr></table></figure>
 
 
 
