@@ -31,31 +31,6 @@
   
   
   <entry>
-    <title>Gen3 红蓝宝石有电模拟器野外乱数闪光教程</title>
-    <link href="/posts/cache-false-share%20-%20%E5%89%AF%E6%9C%AC/"/>
-    <url>/posts/cache-false-share%20-%20%E5%89%AF%E6%9C%AC/</url>
-    
-    <content type="html"><![CDATA[<h2 id="1、开始"><a href="#1、开始" class="headerlink" title="1、开始"></a>1、开始</h2><h3 id="1-1-前言"><a href="#1-1-前言" class="headerlink" title="1.1 前言"></a>1.1 前言</h3><p>首先，本文大量参考了其他教程、攻略的内容，但是其他攻略或多或少都有描述不清楚的地方，然后在实际操作的过程中走了很多歪路，所以本文着重讲解日版红蓝宝石（模拟器有电）情况下的野生宝可梦乱数闪光。</p><p>因为本人是使用的GBA实机卡带，所以会从提取GBA存档到乱数到回写存档一步一步进行，保证不遗漏任何细节。</p><p>大量内容出自以下两位大佬的攻略：</p><ol><li>大碗宽面的帖子：[【怀旧向乱数攻略】红蓝宝石电池未耗尽模拟器乱数](<a href="https://tieba.baidu.com/p/7731770160" target="_blank" rel="noopener">【图片】【怀旧向乱数攻略】红蓝宝石电池未耗尽模拟器乱数【口袋妖怪吧】_百度贴吧 (baidu.com)</a>)</li><li>丘丘大佬的博客：<a href="https://willkyu.github.io/Pokemon/Strategies/In-Game/RNG/Pokemon-RNG-Abuse-Gen3-Part2/" target="_blank" rel="noopener">宝可梦有电的红蓝宝石实机乱数（不包含 ID 或 Egg） | 丘丘 Blog (willkyu.github.io)</a></li></ol><p>其中本文中用到的工具都可以从贴吧的帖子中的链接获取，为了防止链接被炸，<strong>可以从上述链接1的2楼-楼中楼中获取</strong>。</p><h3 id="1-2-准备工作"><a href="#1-2-准备工作" class="headerlink" title="1.2 准备工作"></a>1.2 准备工作</h3><p>你可能需要：</p><ol><li><strong>pkhex</strong> - 主要用于查看训练师的里ID: <a href="https://projectpokemon.org/home/files/file/1-pkhex/" target="_blank" rel="noopener">链接</a></li><li><strong>使用nds提取GBA卡带存档（如果你是单纯的模拟器玩家可以忽略）</strong>：<a href="https://tieba.baidu.com/p/6349601583" target="_blank" rel="noopener">全版本正版游戏卡带存档导出导入教程</a></li><li><strong>原版rom下载：</strong><a href="https://www.oldmanemu.net/掌机游戏/gba/gba官方游戏全集" target="_blank" rel="noopener">GBA游戏下载</a></li></ol><h3 id="1-3-有问题"><a href="#1-3-有问题" class="headerlink" title="1.3 有问题"></a>1.3 有问题</h3><p>如果你看完这篇文章，在操作过程中还有其他问题，或者上述资源失效，都可以通过邮箱联系到我：<a href="mailto:me@neow.cc">me@neow.cc</a></p><h2 id="2、关于乱数"><a href="#2、关于乱数" class="headerlink" title="2、关于乱数"></a>2、关于乱数</h2><p>本文就不讲解乱数的原理了，如果你想了解相关知识，网上还是有很多教程的。</p><p>为什么要使用乱数呢，其实从前言你大概已经知道了，想要利用乱数刷闪，或多或少还是会用到一些非正版的东西，取决于大家的心里洁癖程度。</p><p>如果你不排斥使用存档提取，但是排斥使用模拟器，那可以查看丘丘的博客使用实机进行乱数。</p><p>如果你像我一样能够接受存档提取、使用模拟器，那本文是很适合你的。</p><p>再往上一层，如果你只追求宝可梦的合法，那大可使用RNGreporter、3gensearch刷出闪光然后pkhex捏出对应的宝可梦就行。</p><p>其他的就不废话了，我们赶紧进入正题。</p><h2 id="3、开始操作"><a href="#3、开始操作" class="headerlink" title="3、开始操作"></a>3、开始操作</h2><h3 id="3-1-GBA卡带存档提取"><a href="#3-1-GBA卡带存档提取" class="headerlink" title="3.1 GBA卡带存档提取"></a>3.1 GBA卡带存档提取</h3><p>如果你是模拟器玩家请直接跳过本小节。</p><p><strong>提取GBA存档需要你有一台NDS或NDSL，以及一张r4烧录卡</strong></p><p>首先阅读1.2准备工作的第2条帖子，其中2楼有资源，5楼为提取教程。</p><p>因为本人也因为误操作在提取存档时被删过存档，所以个人建议使用以下方法操作：</p><p>1、在r4烧录卡的sd卡根目录新建文件夹：GBA_Backup</p><img src="https://img.neoniou.com/blog/20221124225201.png" srcset="/img/loading.gif" style="zoom:50%;" /><p>2、在电脑模拟器上随便开一个档保存，将存档放入改文件夹</p><p>3、将烧录卡和GBA卡带插入nds，打开GBA存档提取软件</p><img src="https://img.neoniou.com/blog/20221124225400.png" srcset="/img/loading.gif" style="zoom: 25%;" /><p>4、在此界面，使用方向键选择第2步中放入的存档</p><p>5、点击A同步，随后即完成提取。</p><h3 id="3-2-下载原版rom"><a href="#3-2-下载原版rom" class="headerlink" title="3.2 下载原版rom"></a>3.2 下载原版rom</h3><p>因为本文主要使用日版红/蓝宝石进行，如果你是实机玩家，请下载对应卡带的版本，如果你跳过了3.1小节，那么建议你下载日版蓝宝石的rom，因为本人使用的也是蓝宝石，当然，这两个版本差别几乎没有，可以挑选你喜欢的rom下载。</p><p>下载地址前面已经给出。</p><h3 id="3-3-下载原版rom"><a href="#3-3-下载原版rom" class="headerlink" title="3.3 下载原版rom"></a>3.3 下载原版rom</h3>]]></content>
-    
-    
-    <categories>
-      
-      <category>宝可梦</category>
-      
-    </categories>
-    
-    
-    <tags>
-      
-      <tag>宝可梦</tag>
-      
-    </tags>
-    
-  </entry>
-  
-  
-  
-  <entry>
     <title>Dubbo线程池隔离以及动态线程池</title>
     <link href="/posts/dubbo-thread-pool-isolation-and-dynamic/"/>
     <url>/posts/dubbo-thread-pool-isolation-and-dynamic/</url>
