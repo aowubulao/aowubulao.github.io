@@ -1,0 +1,560 @@
+
+
+<!DOCTYPE html>
+<html lang="zh-CN" data-default-color-scheme=&#34;auto&#34;>
+
+
+
+<head>
+  <meta charset="UTF-8">
+  <link rel="apple-touch-icon" sizes="76x76" href="https://neo-img.oss-cn-shanghai.aliyuncs.com/favicon.ico">
+  <link rel="icon" type="image/png" href="https://neo-img.oss-cn-shanghai.aliyuncs.com/favicon.ico">
+  <meta name="viewport"
+        content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, shrink-to-fit=no">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  
+    <meta http-equiv="Content-Security-Policy" content="upgrade-insecure-requests">
+  
+  <meta name="theme-color" content="#2f4154">
+  <meta name="description" content="">
+  <meta name="author" content="Neo">
+  <meta name="keywords" content="">
+  <title>SpringBoot2.x整合dubbo2.7.8 + nacos1.4.0 - Neo&#39;s Blog</title>
+
+  <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.5.3/dist/css/bootstrap.min.css" />
+
+
+  <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/github-markdown-css@4.0.0/github-markdown.min.css" />
+  <link  rel="stylesheet" href="/lib/hint/hint.min.css" />
+
+  
+    
+    
+      
+      <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/highlight.js@10.4.0/styles/github-gist.min.css" />
+    
+  
+
+  
+    <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@3.5.7/dist/jquery.fancybox.min.css" />
+  
+
+
+
+<!-- 主题依赖的图标库，不要自行修改 -->
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1749284_ba1fz6golrf.css">
+
+
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1736178_kmeydafke9r.css">
+
+
+<link  rel="stylesheet" href="/css/main.css" />
+
+<!-- 自定义样式保持在最底部 -->
+
+
+  <script id="fluid-configs">
+    var Fluid = window.Fluid || {};
+    var CONFIG = {"hostname":"blog.neoniou.com","root":"/","version":"1.8.7","typing":{"enable":true,"typeSpeed":70,"cursorChar":"_","loop":false},"anchorjs":{"enable":true,"element":"h1,h2,h3,h4,h5,h6","placement":"right","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#FC5185","options":{"showSpinner":false,"trickleSpeed":100}},"copy_btn":true,"image_zoom":{"enable":true},"toc":{"enable":true,"headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0},"lazyload":{"enable":true,"onlypost":false},"web_analytics":{"enable":false,"baidu":null,"google":null,"gtag":null,"tencent":{"sid":null,"cid":null},"woyaola":null,"cnzz":null,"leancloud":{"app_id":null,"app_key":null,"server_url":null}}};
+  </script>
+  <script  src="/js/utils.js" ></script>
+  <script  src="/js/color-schema.js" ></script>
+<meta name="generator" content="Hexo 4.2.1"></head>
+
+
+<body>
+  <header style="height: 70vh;">
+    <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
+  <div class="container">
+    <a class="navbar-brand"
+       href="/">&nbsp;<strong>Neo</strong>&nbsp;</a>
+
+    <button id="navbar-toggler-btn" class="navbar-toggler" type="button" data-toggle="collapse"
+            data-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <div class="animated-icon"><span></span><span></span><span></span></div>
+    </button>
+
+    <!-- Collapsible content -->
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav ml-auto text-center">
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/">
+                <i class="iconfont icon-home-fill"></i>
+                首页
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/archives/">
+                <i class="iconfont icon-archive-fill"></i>
+                归档
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/categories/">
+                <i class="iconfont icon-category-fill"></i>
+                分类
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/tags/">
+                <i class="iconfont icon-tags-fill"></i>
+                标签
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/about/">
+                <i class="iconfont icon-user-fill"></i>
+                关于
+              </a>
+            </li>
+          
+        
+        
+          <li class="nav-item" id="search-btn">
+            <a class="nav-link" data-toggle="modal" data-target="#modalSearch">&nbsp;<i
+                class="iconfont icon-search"></i>&nbsp;</a>
+          </li>
+        
+        
+          <li class="nav-item" id="color-toggle-btn">
+            <a class="nav-link" href="javascript:">&nbsp;<i
+                class="iconfont icon-dark" id="color-toggle-icon"></i>&nbsp;</a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</nav>
+
+    <div class="banner" id="banner" parallax=true
+         style="background: url('https://neo-img.oss-cn-shanghai.aliyuncs.com/pixiv/82542737_p0.jpg') no-repeat center center;
+           background-size: cover;">
+      <div class="full-bg-img">
+        <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0.3)">
+          <div class="page-header text-center fade-in-up">
+            <span class="h2" id="subtitle" title="SpringBoot2.x整合dubbo2.7.8 + nacos1.4.0">
+              
+            </span>
+
+            
+              <div class="mt-3">
+  
+  
+    <span class="post-meta">
+      <i class="iconfont icon-date-fill" aria-hidden="true"></i>
+      <time datetime="2020-12-18 16:02" pubdate>
+        2020年12月18日 下午
+      </time>
+    </span>
+  
+</div>
+
+<div class="mt-1">
+  
+    
+    <span class="post-meta mr-2">
+      <i class="iconfont icon-chart"></i>
+      1.4k 字
+    </span>
+  
+
+  
+    
+    <span class="post-meta mr-2">
+      <i class="iconfont icon-clock-fill"></i>
+      
+      
+      23
+       分钟
+    </span>
+  
+
+  
+  
+</div>
+
+            
+          </div>
+
+          
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    
+      
+
+<div class="container-fluid nopadding-x">
+  <div class="row nomargin-x">
+    <div class="d-none d-lg-block col-lg-2"></div>
+    <div class="col-lg-8 nopadding-x-md">
+      <div class="container nopadding-x-md" id="board-ctn">
+        <div class="py-5" id="board">
+          <article class="post-content mx-auto">
+            <!-- SEO header -->
+            <h1 style="display: none">SpringBoot2.x整合dubbo2.7.8 + nacos1.4.0</h1>
+            
+              <p class="note note-info">
+                
+                  本文最后更新于：2022年12月19日 晚上
+                
+              </p>
+            
+            <div class="markdown-body">
+              <h2 id="1、前言"><a href="#1、前言" class="headerlink" title="1、前言"></a>1、前言</h2><p>今天在spring boot2.x下整合了一下dubbo2.7.8和nacos1.4.0，因为都是最新版，所以nacos和dubbo都有一些东西和网上的教程相比有所变化。</p>
+<p>在写最新版的整合时，也会讲一下各个版本相对应的旧版的变化。</p>
+<p>参考官方文档：</p>
+<p><a href="http://dubbo.apache.org/zh/" target="_blank" rel="noopener">dubbo</a></p>
+<p><a href="https://nacos.io/zh-cn/index.html" target="_blank" rel="noopener">nacos</a></p>
+<h2 id="2、安装-nacos注册中心"><a href="#2、安装-nacos注册中心" class="headerlink" title="2、安装 nacos注册中心"></a>2、安装 nacos注册中心</h2><h3 id="2-1-下载"><a href="#2-1-下载" class="headerlink" title="2.1 下载"></a>2.1 下载</h3><p>下载：<a href="https://github.com/alibaba/nacos/releases" target="_blank" rel="noopener">github release</a></p>
+<p>我使用的版本是1.4.0，两个压缩包只是对应了不用的操作系统的压缩，内容是一样的，所以任意选一个下载即可</p>
+<p>部分文件结构：</p>
+<figure class="highlight css"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><code class="hljs css"><span class="hljs-selector-tag">nacos</span><br>├── <span class="hljs-selector-tag">bin</span><br>│   ├── <span class="hljs-selector-tag">shutdown</span><span class="hljs-selector-class">.sh</span><br>│   ├── <span class="hljs-selector-tag">startup</span><span class="hljs-selector-class">.sh</span><br>│   ├── <span class="hljs-selector-tag">startup</span><span class="hljs-selector-class">.cmd</span><br>│   ├── <span class="hljs-selector-tag">shutdown</span><span class="hljs-selector-class">.cmd</span><br>├── <span class="hljs-selector-tag">conf</span><br>│   ├── <span class="hljs-selector-tag">application</span><span class="hljs-selector-class">.properties</span><br>│   ├── <span class="hljs-selector-tag">application</span><span class="hljs-selector-class">.properties</span><span class="hljs-selector-class">.example</span><br>│   ├── <span class="hljs-selector-tag">cluster</span><span class="hljs-selector-class">.conf</span><span class="hljs-selector-class">.example</span><br>│   ├── <span class="hljs-selector-tag">nacos-logback</span><span class="hljs-selector-class">.xml</span><br>│   ├── <span class="hljs-selector-tag">nacos-mysql</span><span class="hljs-selector-class">.sql</span><br>│   └── <span class="hljs-selector-tag">schema</span><span class="hljs-selector-class">.sql</span><br></code></pre></td></tr></table></figure>
+
+<h3 id="2-2-修改启动文件"><a href="#2-2-修改启动文件" class="headerlink" title="2.2 修改启动文件"></a>2.2 修改启动文件</h3><p>因为新版nacos加入了cluster集群模式，而我们我目前只需要standalone单机模式，所以需要修改启动文件，不然每次都添加一个指令很麻烦</p>
+<p>linux下修改startup.sh，windows下修改startup.cmd</p>
+<p>windows：</p>
+<figure class="highlight cmd"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs cmd"><span class="hljs-built_in">set</span> <span class="hljs-built_in">MODE</span>="standalone"<br></code></pre></td></tr></table></figure>
+
+<p>linux：</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs shell">export MODE="standalone"<br></code></pre></td></tr></table></figure>
+
+<h3 id="2-3-配置数据库"><a href="#2-3-配置数据库" class="headerlink" title="2.3 配置数据库"></a>2.3 配置数据库</h3><p>nacos支持内置数据库，不过为了更方便管理，还是建立一个外部数据库比较好</p>
+<p>在数据库中创建一个nacos相关的数据库，然后将 <strong>/conf/nacos-mysql.sql</strong> 文件执行即可</p>
+<h3 id="2-4-修改配置文件"><a href="#2-4-修改配置文件" class="headerlink" title="2.4 修改配置文件"></a>2.4 修改配置文件</h3><p>配置文件：<strong>/conf/application.properties</strong></p>
+<figure class="highlight properties"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><code class="hljs properties"><span class="hljs-comment">#修改为你的数据的信息</span><br><span class="hljs-meta">spring.datasource.platform</span>=<span class="hljs-string">mysql</span><br><br><span class="hljs-meta">db.num</span>=<span class="hljs-string">1</span><br><br><span class="hljs-meta">db.url.0</span>=<span class="hljs-string">jdbc:mysql://database-url:12345/nacos?characterEncoding=utf8&amp;connectTimeout=1000&amp;socketTimeout=3000&amp;autoReconnect=true&amp;useUnicode=true&amp;useSSL=false&amp;serverTimezone=UTC</span><br><span class="hljs-meta">db.user</span>=<span class="hljs-string">nacos</span><br><span class="hljs-meta">db.password</span>=<span class="hljs-string">nacos</span><br></code></pre></td></tr></table></figure>
+
+<h3 id="2-5-启动nacos"><a href="#2-5-启动nacos" class="headerlink" title="2.5 启动nacos"></a>2.5 启动nacos</h3><p>windows下双击startup.cmd即可</p>
+<p>linux下：</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><code class="hljs shell">sh startup.sh<br><span class="hljs-meta">#</span><span class="bash">ubuntu</span><br>bash startup.sh<br></code></pre></td></tr></table></figure>
+
+<p>根据提示的网址访问即可，默认的用户名和密码都是nacos</p>
+<p><img src="https://img.neoniou.com/blog/2194sda.png" srcset="/img/loading.gif" alt=""></p>
+<h2 id="3、项目整合"><a href="#3、项目整合" class="headerlink" title="3、项目整合"></a>3、项目整合</h2><p>我的整合demo: <a href="https://github.com/aowubulao/dubbo-demo" target="_blank" rel="noopener">https://github.com/aowubulao/dubbo-demo</a></p>
+<p>项目目录</p>
+<p><img src="https://img.neoniou.com/blog/20201218162624.png" srcset="/img/loading.gif" alt=""></p>
+<p><strong>common-api</strong>：接口提供包，普通mavne项目，用于提供接口类</p>
+<p><strong>service-consumer</strong>：dubbo消费者</p>
+<p><strong>service-provider</strong>：dubbo提供者</p>
+<h3 id="父类"><a href="#父类" class="headerlink" title="父类"></a>父类</h3><p>父类用于提供依赖管理</p>
+<p>pom文件：</p>
+<figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br></pre></td><td class="code"><pre><code class="hljs xml"><span class="hljs-tag">&lt;<span class="hljs-name">properties</span>&gt;</span><br>        <span class="hljs-tag">&lt;<span class="hljs-name">maven.compiler.source</span>&gt;</span>8<span class="hljs-tag">&lt;/<span class="hljs-name">maven.compiler.source</span>&gt;</span><br>        <span class="hljs-tag">&lt;<span class="hljs-name">maven.compiler.target</span>&gt;</span>8<span class="hljs-tag">&lt;/<span class="hljs-name">maven.compiler.target</span>&gt;</span><br>        <span class="hljs-tag">&lt;<span class="hljs-name">netty.version</span>&gt;</span>4.1.56.Final<span class="hljs-tag">&lt;/<span class="hljs-name">netty.version</span>&gt;</span><br>        <span class="hljs-tag">&lt;<span class="hljs-name">spring-boot.version</span>&gt;</span>2.3.5.RELEASE<span class="hljs-tag">&lt;/<span class="hljs-name">spring-boot.version</span>&gt;</span><br>        <span class="hljs-tag">&lt;<span class="hljs-name">dubbo.version</span>&gt;</span>2.7.8<span class="hljs-tag">&lt;/<span class="hljs-name">dubbo.version</span>&gt;</span><br>        <span class="hljs-tag">&lt;<span class="hljs-name">nacos-client.version</span>&gt;</span>1.4.0<span class="hljs-tag">&lt;/<span class="hljs-name">nacos-client.version</span>&gt;</span><br>    <span class="hljs-tag">&lt;/<span class="hljs-name">properties</span>&gt;</span><br><br>    <span class="hljs-tag">&lt;<span class="hljs-name">dependencyManagement</span>&gt;</span><br>        <span class="hljs-tag">&lt;<span class="hljs-name">dependencies</span>&gt;</span><br>            <span class="hljs-tag">&lt;<span class="hljs-name">dependency</span>&gt;</span><br>                <span class="hljs-tag">&lt;<span class="hljs-name">groupId</span>&gt;</span>org.springframework.boot<span class="hljs-tag">&lt;/<span class="hljs-name">groupId</span>&gt;</span><br>                <span class="hljs-tag">&lt;<span class="hljs-name">artifactId</span>&gt;</span>spring-boot-dependencies<span class="hljs-tag">&lt;/<span class="hljs-name">artifactId</span>&gt;</span><br>                <span class="hljs-tag">&lt;<span class="hljs-name">version</span>&gt;</span>$&#123;spring-boot.version&#125;<span class="hljs-tag">&lt;/<span class="hljs-name">version</span>&gt;</span><br>                <span class="hljs-tag">&lt;<span class="hljs-name">type</span>&gt;</span>pom<span class="hljs-tag">&lt;/<span class="hljs-name">type</span>&gt;</span><br>                <span class="hljs-tag">&lt;<span class="hljs-name">scope</span>&gt;</span>import<span class="hljs-tag">&lt;/<span class="hljs-name">scope</span>&gt;</span><br>            <span class="hljs-tag">&lt;/<span class="hljs-name">dependency</span>&gt;</span><br>            <span class="hljs-tag">&lt;<span class="hljs-name">dependency</span>&gt;</span><br>                <span class="hljs-tag">&lt;<span class="hljs-name">groupId</span>&gt;</span>org.apache.dubbo<span class="hljs-tag">&lt;/<span class="hljs-name">groupId</span>&gt;</span><br>                <span class="hljs-tag">&lt;<span class="hljs-name">artifactId</span>&gt;</span>dubbo-dependencies-bom<span class="hljs-tag">&lt;/<span class="hljs-name">artifactId</span>&gt;</span><br>                <span class="hljs-tag">&lt;<span class="hljs-name">version</span>&gt;</span>$&#123;dubbo.version&#125;<span class="hljs-tag">&lt;/<span class="hljs-name">version</span>&gt;</span><br>                <span class="hljs-tag">&lt;<span class="hljs-name">type</span>&gt;</span>pom<span class="hljs-tag">&lt;/<span class="hljs-name">type</span>&gt;</span><br>                <span class="hljs-tag">&lt;<span class="hljs-name">scope</span>&gt;</span>import<span class="hljs-tag">&lt;/<span class="hljs-name">scope</span>&gt;</span><br>            <span class="hljs-tag">&lt;/<span class="hljs-name">dependency</span>&gt;</span><br>            <span class="hljs-tag">&lt;<span class="hljs-name">dependency</span>&gt;</span><br>                <span class="hljs-tag">&lt;<span class="hljs-name">groupId</span>&gt;</span>org.apache.dubbo<span class="hljs-tag">&lt;/<span class="hljs-name">groupId</span>&gt;</span><br>                <span class="hljs-tag">&lt;<span class="hljs-name">artifactId</span>&gt;</span>dubbo-spring-boot-starter<span class="hljs-tag">&lt;/<span class="hljs-name">artifactId</span>&gt;</span><br>                <span class="hljs-tag">&lt;<span class="hljs-name">version</span>&gt;</span>$&#123;dubbo.version&#125;<span class="hljs-tag">&lt;/<span class="hljs-name">version</span>&gt;</span><br>            <span class="hljs-tag">&lt;/<span class="hljs-name">dependency</span>&gt;</span><br>            <span class="hljs-tag">&lt;<span class="hljs-name">dependency</span>&gt;</span><br>                <span class="hljs-tag">&lt;<span class="hljs-name">groupId</span>&gt;</span>org.apache.dubbo<span class="hljs-tag">&lt;/<span class="hljs-name">groupId</span>&gt;</span><br>                <span class="hljs-tag">&lt;<span class="hljs-name">artifactId</span>&gt;</span>dubbo-registry-nacos<span class="hljs-tag">&lt;/<span class="hljs-name">artifactId</span>&gt;</span><br>                <span class="hljs-tag">&lt;<span class="hljs-name">version</span>&gt;</span>$&#123;dubbo.version&#125;<span class="hljs-tag">&lt;/<span class="hljs-name">version</span>&gt;</span><br>            <span class="hljs-tag">&lt;/<span class="hljs-name">dependency</span>&gt;</span><br>            <span class="hljs-tag">&lt;<span class="hljs-name">dependency</span>&gt;</span><br>                <span class="hljs-tag">&lt;<span class="hljs-name">groupId</span>&gt;</span>com.alibaba.nacos<span class="hljs-tag">&lt;/<span class="hljs-name">groupId</span>&gt;</span><br>                <span class="hljs-tag">&lt;<span class="hljs-name">artifactId</span>&gt;</span>nacos-client<span class="hljs-tag">&lt;/<span class="hljs-name">artifactId</span>&gt;</span><br>                <span class="hljs-tag">&lt;<span class="hljs-name">version</span>&gt;</span>$&#123;nacos-client.version&#125;<span class="hljs-tag">&lt;/<span class="hljs-name">version</span>&gt;</span><br>            <span class="hljs-tag">&lt;/<span class="hljs-name">dependency</span>&gt;</span><br>            <span class="hljs-tag">&lt;<span class="hljs-name">dependency</span>&gt;</span><br>                <span class="hljs-tag">&lt;<span class="hljs-name">groupId</span>&gt;</span>org.apache.dubbo<span class="hljs-tag">&lt;/<span class="hljs-name">groupId</span>&gt;</span><br>                <span class="hljs-tag">&lt;<span class="hljs-name">artifactId</span>&gt;</span>dubbo<span class="hljs-tag">&lt;/<span class="hljs-name">artifactId</span>&gt;</span><br>                <span class="hljs-tag">&lt;<span class="hljs-name">version</span>&gt;</span>$&#123;dubbo.version&#125;<span class="hljs-tag">&lt;/<span class="hljs-name">version</span>&gt;</span><br>                <span class="hljs-tag">&lt;<span class="hljs-name">exclusions</span>&gt;</span><br>                    <span class="hljs-tag">&lt;<span class="hljs-name">exclusion</span>&gt;</span><br>                        <span class="hljs-tag">&lt;<span class="hljs-name">groupId</span>&gt;</span>org.springframework<span class="hljs-tag">&lt;/<span class="hljs-name">groupId</span>&gt;</span><br>                        <span class="hljs-tag">&lt;<span class="hljs-name">artifactId</span>&gt;</span>spring<span class="hljs-tag">&lt;/<span class="hljs-name">artifactId</span>&gt;</span><br>                    <span class="hljs-tag">&lt;/<span class="hljs-name">exclusion</span>&gt;</span><br>                    <span class="hljs-tag">&lt;<span class="hljs-name">exclusion</span>&gt;</span><br>                        <span class="hljs-tag">&lt;<span class="hljs-name">groupId</span>&gt;</span>javax.servlet<span class="hljs-tag">&lt;/<span class="hljs-name">groupId</span>&gt;</span><br>                        <span class="hljs-tag">&lt;<span class="hljs-name">artifactId</span>&gt;</span>servlet-api<span class="hljs-tag">&lt;/<span class="hljs-name">artifactId</span>&gt;</span><br>                    <span class="hljs-tag">&lt;/<span class="hljs-name">exclusion</span>&gt;</span><br>                    <span class="hljs-tag">&lt;<span class="hljs-name">exclusion</span>&gt;</span><br>                        <span class="hljs-tag">&lt;<span class="hljs-name">groupId</span>&gt;</span>log4j<span class="hljs-tag">&lt;/<span class="hljs-name">groupId</span>&gt;</span><br>                        <span class="hljs-tag">&lt;<span class="hljs-name">artifactId</span>&gt;</span>log4j<span class="hljs-tag">&lt;/<span class="hljs-name">artifactId</span>&gt;</span><br>                    <span class="hljs-tag">&lt;/<span class="hljs-name">exclusion</span>&gt;</span><br>                <span class="hljs-tag">&lt;/<span class="hljs-name">exclusions</span>&gt;</span><br>            <span class="hljs-tag">&lt;/<span class="hljs-name">dependency</span>&gt;</span><br>        <span class="hljs-tag">&lt;/<span class="hljs-name">dependencies</span>&gt;</span><br>    <span class="hljs-tag">&lt;/<span class="hljs-name">dependencyManagement</span>&gt;</span><br></code></pre></td></tr></table></figure>
+
+<h3 id="common-api模块"><a href="#common-api模块" class="headerlink" title="common-api模块"></a>common-api模块</h3><p><img src="https://img.neoniou.com/blog/20201218162945.png" srcset="/img/loading.gif" alt=""></p>
+<p>用于提供一个接口</p>
+<p><strong>SayService:</strong></p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-keyword">public</span> <span class="hljs-class"><span class="hljs-keyword">interface</span> <span class="hljs-title">SayService</span> </span>&#123;<br><br>    <span class="hljs-comment">/**</span><br><span class="hljs-comment">     * 根据名字say hello</span><br><span class="hljs-comment">     * <span class="hljs-doctag">@param</span> name 名字</span><br><span class="hljs-comment">     * <span class="hljs-doctag">@return</span> name + hello</span><br><span class="hljs-comment">     */</span><br>    <span class="hljs-function">String <span class="hljs-title">sayHelloByName</span><span class="hljs-params">(String name)</span></span>;<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<h3 id="service-provider"><a href="#service-provider" class="headerlink" title="service-provider"></a>service-provider</h3><p><img src="https://img.neoniou.com/blog/20201218163945.png" srcset="/img/loading.gif" alt=""></p>
+<p>SpringBoot项目，提供实例供consumer使用</p>
+<p><strong>pom：</strong></p>
+<figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br></pre></td><td class="code"><pre><code class="hljs xml"><span class="hljs-tag">&lt;<span class="hljs-name">properties</span>&gt;</span><br>    <span class="hljs-tag">&lt;<span class="hljs-name">maven.compiler.source</span>&gt;</span>8<span class="hljs-tag">&lt;/<span class="hljs-name">maven.compiler.source</span>&gt;</span><br>    <span class="hljs-tag">&lt;<span class="hljs-name">maven.compiler.target</span>&gt;</span>8<span class="hljs-tag">&lt;/<span class="hljs-name">maven.compiler.target</span>&gt;</span><br><span class="hljs-tag">&lt;/<span class="hljs-name">properties</span>&gt;</span><br><br><span class="hljs-tag">&lt;<span class="hljs-name">dependencies</span>&gt;</span><br>    <span class="hljs-tag">&lt;<span class="hljs-name">dependency</span>&gt;</span><br>        <span class="hljs-tag">&lt;<span class="hljs-name">groupId</span>&gt;</span>org.springframework.boot<span class="hljs-tag">&lt;/<span class="hljs-name">groupId</span>&gt;</span><br>        <span class="hljs-tag">&lt;<span class="hljs-name">artifactId</span>&gt;</span>spring-boot-starter-web<span class="hljs-tag">&lt;/<span class="hljs-name">artifactId</span>&gt;</span><br>    <span class="hljs-tag">&lt;/<span class="hljs-name">dependency</span>&gt;</span><br>    <span class="hljs-tag">&lt;<span class="hljs-name">dependency</span>&gt;</span><br>        <span class="hljs-tag">&lt;<span class="hljs-name">groupId</span>&gt;</span>org.apache.dubbo<span class="hljs-tag">&lt;/<span class="hljs-name">groupId</span>&gt;</span><br>        <span class="hljs-tag">&lt;<span class="hljs-name">artifactId</span>&gt;</span>dubbo-spring-boot-starter<span class="hljs-tag">&lt;/<span class="hljs-name">artifactId</span>&gt;</span><br>    <span class="hljs-tag">&lt;/<span class="hljs-name">dependency</span>&gt;</span><br>    <span class="hljs-tag">&lt;<span class="hljs-name">dependency</span>&gt;</span><br>        <span class="hljs-tag">&lt;<span class="hljs-name">groupId</span>&gt;</span>org.apache.dubbo<span class="hljs-tag">&lt;/<span class="hljs-name">groupId</span>&gt;</span><br>        <span class="hljs-tag">&lt;<span class="hljs-name">artifactId</span>&gt;</span>dubbo<span class="hljs-tag">&lt;/<span class="hljs-name">artifactId</span>&gt;</span><br>    <span class="hljs-tag">&lt;/<span class="hljs-name">dependency</span>&gt;</span><br>    <span class="hljs-tag">&lt;<span class="hljs-name">dependency</span>&gt;</span><br>        <span class="hljs-tag">&lt;<span class="hljs-name">groupId</span>&gt;</span>org.apache.dubbo<span class="hljs-tag">&lt;/<span class="hljs-name">groupId</span>&gt;</span><br>        <span class="hljs-tag">&lt;<span class="hljs-name">artifactId</span>&gt;</span>dubbo-registry-nacos<span class="hljs-tag">&lt;/<span class="hljs-name">artifactId</span>&gt;</span><br>    <span class="hljs-tag">&lt;/<span class="hljs-name">dependency</span>&gt;</span><br>    <span class="hljs-tag">&lt;<span class="hljs-name">dependency</span>&gt;</span><br>        <span class="hljs-tag">&lt;<span class="hljs-name">groupId</span>&gt;</span>com.alibaba.nacos<span class="hljs-tag">&lt;/<span class="hljs-name">groupId</span>&gt;</span><br>        <span class="hljs-tag">&lt;<span class="hljs-name">artifactId</span>&gt;</span>nacos-client<span class="hljs-tag">&lt;/<span class="hljs-name">artifactId</span>&gt;</span><br>    <span class="hljs-tag">&lt;/<span class="hljs-name">dependency</span>&gt;</span><br>    <span class="hljs-tag">&lt;<span class="hljs-name">dependency</span>&gt;</span><br>        <span class="hljs-tag">&lt;<span class="hljs-name">groupId</span>&gt;</span>com.neoniou.demo<span class="hljs-tag">&lt;/<span class="hljs-name">groupId</span>&gt;</span><br>        <span class="hljs-tag">&lt;<span class="hljs-name">artifactId</span>&gt;</span>common-api<span class="hljs-tag">&lt;/<span class="hljs-name">artifactId</span>&gt;</span><br>        <span class="hljs-tag">&lt;<span class="hljs-name">version</span>&gt;</span>0.0.1<span class="hljs-tag">&lt;/<span class="hljs-name">version</span>&gt;</span><br>    <span class="hljs-tag">&lt;/<span class="hljs-name">dependency</span>&gt;</span><br><span class="hljs-tag">&lt;/<span class="hljs-name">dependencies</span>&gt;</span><br><br><span class="hljs-tag">&lt;<span class="hljs-name">build</span>&gt;</span><br>    <span class="hljs-tag">&lt;<span class="hljs-name">plugins</span>&gt;</span><br>        <span class="hljs-tag">&lt;<span class="hljs-name">plugin</span>&gt;</span><br>            <span class="hljs-tag">&lt;<span class="hljs-name">groupId</span>&gt;</span>org.springframework.boot<span class="hljs-tag">&lt;/<span class="hljs-name">groupId</span>&gt;</span><br>            <span class="hljs-tag">&lt;<span class="hljs-name">artifactId</span>&gt;</span>spring-boot-maven-plugin<span class="hljs-tag">&lt;/<span class="hljs-name">artifactId</span>&gt;</span><br>        <span class="hljs-tag">&lt;/<span class="hljs-name">plugin</span>&gt;</span><br>    <span class="hljs-tag">&lt;/<span class="hljs-name">plugins</span>&gt;</span><br><span class="hljs-tag">&lt;/<span class="hljs-name">build</span>&gt;</span><br></code></pre></td></tr></table></figure>
+
+<p><strong>配置文件application.yaml：</strong></p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><code class="hljs yaml"><span class="hljs-attr">server:</span><br>  <span class="hljs-attr">port:</span> <span class="hljs-number">14511</span><br><span class="hljs-attr">spring:</span><br>  <span class="hljs-attr">application:</span><br>    <span class="hljs-attr">name:</span> <span class="hljs-string">provider-service</span><br>  <span class="hljs-attr">main:</span><br>    <span class="hljs-attr">allow-bean-definition-overriding:</span> <span class="hljs-literal">true</span><br><span class="hljs-attr">dubbo:</span><br>  <span class="hljs-attr">application:</span><br>    <span class="hljs-attr">name:</span> <span class="hljs-string">provider-service</span><br>  <span class="hljs-attr">registry:</span><br>    <span class="hljs-attr">address:</span> <span class="hljs-string">nacos://127.0.0.1:8848</span><br>    <span class="hljs-attr">username:</span> <span class="hljs-string">nacos</span><br>    <span class="hljs-attr">password:</span> <span class="hljs-string">nacos</span><br>  <span class="hljs-attr">scan:</span><br>    <span class="hljs-attr">base-packages:</span> <span class="hljs-string">com.neoniou.provider.service.impl</span><br>  <span class="hljs-attr">protocol:</span><br>    <span class="hljs-attr">name:</span> <span class="hljs-string">dubbo</span><br>    <span class="hljs-attr">port:</span> <span class="hljs-number">15511</span><br></code></pre></td></tr></table></figure>
+
+<p><strong>ProviderApplication.class：</strong></p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-meta">@EnableDubbo</span><br><span class="hljs-meta">@SpringBootApplication</span><br><span class="hljs-keyword">public</span> <span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">ProviderApplication</span> </span>&#123;<br><br>    <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">static</span> <span class="hljs-keyword">void</span> <span class="hljs-title">main</span><span class="hljs-params">(String[] args)</span> </span>&#123;<br>        SpringApplication.run(ProviderApplication<span class="hljs-class">.<span class="hljs-keyword">class</span>, <span class="hljs-title">args</span>)</span>;<br>    &#125;<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p><strong>SayServiceImpl.class：</strong></p>
+<p>关于这个地方，<strong>@DubboService</strong>是新版Dubbo的注解，如果是旧版比如2.7.3，使用的是<strong>org.apache.dubbo.config.annotation.Service</strong>这个注解</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-meta">@DubboService</span><br><span class="hljs-keyword">public</span> <span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">SayServiceImpl</span> <span class="hljs-keyword">implements</span> <span class="hljs-title">SayService</span> </span>&#123;<br><br>    <span class="hljs-meta">@Override</span><br>    <span class="hljs-function"><span class="hljs-keyword">public</span> String <span class="hljs-title">sayHelloByName</span><span class="hljs-params">(String name)</span> </span>&#123;<br>        <span class="hljs-keyword">return</span> name + <span class="hljs-string">",hello!"</span>;<br>    &#125;<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<h3 id="service-consumer"><a href="#service-consumer" class="headerlink" title="service-consumer"></a>service-consumer</h3><p><img src="https://img.neoniou.com/blog/20201218163928.png" srcset="/img/loading.gif" alt=""></p>
+<p>pom和启动类同provider</p>
+<p><strong>SayController：</strong></p>
+<p>同上，这里的<strong>@DubboReference</strong>是一个新版注解，老版本使用的是<strong>org.apache.dubbo.config.annotation.Reference</strong></p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><code class="hljs Java"><span class="hljs-meta">@RestController</span><br><span class="hljs-meta">@RequestMapping</span>(<span class="hljs-string">"/demo/say"</span>)<br><span class="hljs-keyword">public</span> <span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">SayController</span> </span>&#123;<br><br>    <span class="hljs-meta">@DubboReference</span><br>    <span class="hljs-keyword">private</span> SayService sayService;<br><br>    <span class="hljs-meta">@GetMapping</span>(<span class="hljs-string">"/sayHello"</span>)<br>    <span class="hljs-function"><span class="hljs-keyword">public</span> ResponseEntity&lt;String&gt; <span class="hljs-title">sayHello</span><span class="hljs-params">(@RequestParam(<span class="hljs-string">"name"</span>)</span> String name) </span>&#123;<br>        <span class="hljs-keyword">return</span> ResponseEntity.ok(sayService.sayHelloByName(name));<br>    &#125;<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<h2 id="4、项目启动"><a href="#4、项目启动" class="headerlink" title="4、项目启动"></a>4、项目启动</h2><p>先启动provider，再启动consumer</p>
+<p>可以在nacos控制面板中看到：</p>
+<p><img src="https://img.neoniou.com/blog/20201218164228.png" srcset="/img/loading.gif" alt=""></p>
+<p><strong>测试API：</strong></p>
+<p><img src="https://img.neoniou.com/blog/20201218164353.png" srcset="/img/loading.gif" alt=""></p>
+<p>至此，SpringBoot+nacos+dubbo的整合就结束了，关于dubbo的配置，不仅只有yaml配置方法，还有xml、注解、bean等很多方式，可以查阅官方文档进行更适合你自己项目的配置方式。</p>
+
+            </div>
+            <hr>
+            <div>
+              <div class="post-metas mb-3">
+                
+                  <div class="post-meta mr-3">
+                    <i class="iconfont icon-category"></i>
+                    
+                      <a class="hover-with-bg" href="/categories/Java/">Java</a>
+                    
+                  </div>
+                
+                
+                  <div class="post-meta">
+                    <i class="iconfont icon-tags"></i>
+                    
+                      <a class="hover-with-bg" href="/tags/springboot/">springboot</a>
+                    
+                      <a class="hover-with-bg" href="/tags/dubbo/">dubbo</a>
+                    
+                      <a class="hover-with-bg" href="/tags/nacos/">nacos</a>
+                    
+                  </div>
+                
+              </div>
+              
+                <p class="note note-warning">本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-sa/4.0/deed.zh" target="_blank" rel="nofollow noopener noopener">CC BY-SA 4.0 协议</a> ，转载请注明出处！</p>
+              
+              
+                <div class="post-prevnext">
+                  <article class="post-prev col-6">
+                    
+                    
+                      <a href="/posts/cache-false-share/">
+                        <i class="iconfont icon-arrowleft"></i>
+                        <span class="hidden-mobile">Cache Line和内存伪共享</span>
+                        <span class="visible-mobile">上一篇</span>
+                      </a>
+                    
+                  </article>
+                  <article class="post-next col-6">
+                    
+                    
+                      <a href="/posts/java-positional-operator/">
+                        <span class="hidden-mobile">Java下位运算符</span>
+                        <span class="visible-mobile">下一篇</span>
+                        <i class="iconfont icon-arrowright"></i>
+                      </a>
+                    
+                  </article>
+                </div>
+              
+            </div>
+
+            
+              <!-- Comments -->
+              <article class="comments" id="comments">
+                
+                
+  <div id="waline"></div>
+  <script type="text/javascript">
+    Fluid.utils.waitElementVisible('waline', function() {
+      Fluid.utils.createScript('https://cdn.jsdelivr.net/npm/@waline/client@0.4.2/dist/Waline.min.js', function () {
+        new Waline({
+          el: "#waline",
+          placeholder: "=w=评论点什么",
+          path: window.location.pathname,
+          avatar: "retro",
+          meta: ["nick","mail","link"],
+          pageSize: "10",
+          lang: "zh-CN",
+          highlight: true,
+          serverURL: "https://waline-9ezh9f665-aowubulao.vercel.app",
+          avatarForce: false,
+          requiredFields: [],
+          emojiCDN: "",
+          emojiMaps: {},
+        });
+      });
+    });
+  </script>
+  <noscript>Please enable JavaScript to view the
+    <a href="https://waline.js.org" target="_blank" rel="nofollow noopener noopener">comments powered by Waline.</a>
+  </noscript>
+
+
+              </article>
+            
+          </article>
+        </div>
+      </div>
+    </div>
+    
+      <div class="d-none d-lg-block col-lg-2 toc-container" id="toc-ctn">
+        <div id="toc">
+  <p class="toc-header"><i class="iconfont icon-list"></i>&nbsp;目录</p>
+  <div class="toc-body" id="toc-body"></div>
+</div>
+
+      </div>
+    
+  </div>
+</div>
+
+<!-- Custom -->
+
+
+    
+
+    
+      <a id="scroll-top-button" href="#" role="button">
+        <i class="iconfont icon-arrowup" aria-hidden="true"></i>
+      </a>
+    
+
+    
+      <div class="modal fade" id="modalSearch" tabindex="-1" role="dialog" aria-labelledby="ModalLabel"
+     aria-hidden="true">
+  <div class="modal-dialog modal-dialog-scrollable modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header text-center">
+        <h4 class="modal-title w-100 font-weight-bold">搜索</h4>
+        <button type="button" id="local-search-close" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body mx-3">
+        <div class="md-form mb-5">
+          <input type="text" id="local-search-input" class="form-control validate">
+          <label data-error="x" data-success="v"
+                 for="local-search-input">关键词</label>
+        </div>
+        <div class="list-group" id="local-search-result"></div>
+      </div>
+    </div>
+  </div>
+</div>
+    
+
+    
+  </main>
+
+  <footer class="text-center mt-5 py-3">
+  <div class="footer-content">
+     <a href="https://blog.neoniou.com" target="_blank" rel="nofollow noopener"><span>Neos Blog</span></a> <i class="iconfont icon-love"></i> <a href="https://github.com/fluid-dev/hexo-theme-fluid" target="_blank" rel="nofollow noopener"><span>Fluid</span></a> 
+  </div>
+  
+
+  
+
+  
+</footer>
+
+<!-- SCRIPTS -->
+
+  <script  src="https://cdn.jsdelivr.net/npm/nprogress@0.2.0/nprogress.min.js" ></script>
+  <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/nprogress@0.2.0/nprogress.min.css" />
+
+  <script>
+    NProgress.configure({"showSpinner":false,"trickleSpeed":100})
+    NProgress.start()
+    window.addEventListener('load', function() {
+      NProgress.done();
+    })
+  </script>
+
+
+<script  src="https://cdn.jsdelivr.net/npm/jquery@3.5.1/dist/jquery.min.js" ></script>
+<script  src="https://cdn.jsdelivr.net/npm/bootstrap@4.5.3/dist/js/bootstrap.min.js" ></script>
+<script  src="/js/debouncer.js" ></script>
+<script  src="/js/events.js" ></script>
+<script  src="/js/plugins.js" ></script>
+
+<!-- Plugins -->
+
+
+  
+    <script  src="/js/lazyload.js" ></script>
+  
+
+
+
+  
+
+
+
+  <script  src="https://cdn.jsdelivr.net/npm/tocbot@4.12.0/dist/tocbot.min.js" ></script>
+
+
+
+  <script  src="https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@3.5.7/dist/jquery.fancybox.min.js" ></script>
+
+
+
+  <script  src="https://cdn.jsdelivr.net/npm/anchor-js@4.3.0/anchor.min.js" ></script>
+
+
+
+  <script defer src="https://cdn.jsdelivr.net/npm/clipboard@2.0.6/dist/clipboard.min.js" ></script>
+
+
+
+
+
+
+  <script  src="https://cdn.jsdelivr.net/npm/typed.js@2.0.11/lib/typed.min.js" ></script>
+  <script>
+    (function (window, document) {
+      var typing = Fluid.plugins.typing;
+      var title = document.getElementById('subtitle').title;
+      
+      typing(title)
+      
+    })(window, document);
+  </script>
+
+
+
+  <script  src="/js/local-search.js" ></script>
+  <script>
+    (function () {
+      var path = "/local-search.xml";
+      var inputArea = document.querySelector("#local-search-input");
+      inputArea.onclick = function () {
+        searchFunc(path, 'local-search-input', 'local-search-result');
+        this.onclick = null
+      }
+    })()
+  </script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<!-- 主题的启动项 保持在最底部 -->
+<script  src="/js/boot.js" ></script>
+
+
+
+</body>
+</html>

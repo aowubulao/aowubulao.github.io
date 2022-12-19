@@ -1,0 +1,529 @@
+
+
+<!DOCTYPE html>
+<html lang="zh-CN" data-default-color-scheme=&#34;auto&#34;>
+
+
+
+<head>
+  <meta charset="UTF-8">
+  <link rel="apple-touch-icon" sizes="76x76" href="https://neo-img.oss-cn-shanghai.aliyuncs.com/favicon.ico">
+  <link rel="icon" type="image/png" href="https://neo-img.oss-cn-shanghai.aliyuncs.com/favicon.ico">
+  <meta name="viewport"
+        content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, shrink-to-fit=no">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  
+    <meta http-equiv="Content-Security-Policy" content="upgrade-insecure-requests">
+  
+  <meta name="theme-color" content="#2f4154">
+  <meta name="description" content="">
+  <meta name="author" content="Neo">
+  <meta name="keywords" content="">
+  <title>Dubbo线程池隔离以及动态线程池 - Neo&#39;s Blog</title>
+
+  <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.5.3/dist/css/bootstrap.min.css" />
+
+
+  <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/github-markdown-css@4.0.0/github-markdown.min.css" />
+  <link  rel="stylesheet" href="/lib/hint/hint.min.css" />
+
+  
+    
+    
+      
+      <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/highlight.js@10.4.0/styles/github-gist.min.css" />
+    
+  
+
+  
+    <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@3.5.7/dist/jquery.fancybox.min.css" />
+  
+
+
+
+<!-- 主题依赖的图标库，不要自行修改 -->
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1749284_ba1fz6golrf.css">
+
+
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1736178_kmeydafke9r.css">
+
+
+<link  rel="stylesheet" href="/css/main.css" />
+
+<!-- 自定义样式保持在最底部 -->
+
+
+  <script id="fluid-configs">
+    var Fluid = window.Fluid || {};
+    var CONFIG = {"hostname":"blog.neoniou.com","root":"/","version":"1.8.7","typing":{"enable":true,"typeSpeed":70,"cursorChar":"_","loop":false},"anchorjs":{"enable":true,"element":"h1,h2,h3,h4,h5,h6","placement":"right","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#FC5185","options":{"showSpinner":false,"trickleSpeed":100}},"copy_btn":true,"image_zoom":{"enable":true},"toc":{"enable":true,"headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0},"lazyload":{"enable":true,"onlypost":false},"web_analytics":{"enable":false,"baidu":null,"google":null,"gtag":null,"tencent":{"sid":null,"cid":null},"woyaola":null,"cnzz":null,"leancloud":{"app_id":null,"app_key":null,"server_url":null}}};
+  </script>
+  <script  src="/js/utils.js" ></script>
+  <script  src="/js/color-schema.js" ></script>
+<meta name="generator" content="Hexo 4.2.1"></head>
+
+
+<body>
+  <header style="height: 70vh;">
+    <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
+  <div class="container">
+    <a class="navbar-brand"
+       href="/">&nbsp;<strong>Neo</strong>&nbsp;</a>
+
+    <button id="navbar-toggler-btn" class="navbar-toggler" type="button" data-toggle="collapse"
+            data-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <div class="animated-icon"><span></span><span></span><span></span></div>
+    </button>
+
+    <!-- Collapsible content -->
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav ml-auto text-center">
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/">
+                <i class="iconfont icon-home-fill"></i>
+                首页
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/archives/">
+                <i class="iconfont icon-archive-fill"></i>
+                归档
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/categories/">
+                <i class="iconfont icon-category-fill"></i>
+                分类
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/tags/">
+                <i class="iconfont icon-tags-fill"></i>
+                标签
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/about/">
+                <i class="iconfont icon-user-fill"></i>
+                关于
+              </a>
+            </li>
+          
+        
+        
+          <li class="nav-item" id="search-btn">
+            <a class="nav-link" data-toggle="modal" data-target="#modalSearch">&nbsp;<i
+                class="iconfont icon-search"></i>&nbsp;</a>
+          </li>
+        
+        
+          <li class="nav-item" id="color-toggle-btn">
+            <a class="nav-link" href="javascript:">&nbsp;<i
+                class="iconfont icon-dark" id="color-toggle-icon"></i>&nbsp;</a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</nav>
+
+    <div class="banner" id="banner" parallax=true
+         style="background: url('https://neo-img.oss-cn-shanghai.aliyuncs.com/pixiv/82542737_p0.jpg') no-repeat center center;
+           background-size: cover;">
+      <div class="full-bg-img">
+        <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0.3)">
+          <div class="page-header text-center fade-in-up">
+            <span class="h2" id="subtitle" title="Dubbo线程池隔离以及动态线程池">
+              
+            </span>
+
+            
+              <div class="mt-3">
+  
+  
+    <span class="post-meta">
+      <i class="iconfont icon-date-fill" aria-hidden="true"></i>
+      <time datetime="2022-07-11 14:31" pubdate>
+        2022年7月11日 下午
+      </time>
+    </span>
+  
+</div>
+
+<div class="mt-1">
+  
+    
+    <span class="post-meta mr-2">
+      <i class="iconfont icon-chart"></i>
+      1.8k 字
+    </span>
+  
+
+  
+    
+    <span class="post-meta mr-2">
+      <i class="iconfont icon-clock-fill"></i>
+      
+      
+      21
+       分钟
+    </span>
+  
+
+  
+  
+</div>
+
+            
+          </div>
+
+          
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    
+      
+
+<div class="container-fluid nopadding-x">
+  <div class="row nomargin-x">
+    <div class="d-none d-lg-block col-lg-2"></div>
+    <div class="col-lg-8 nopadding-x-md">
+      <div class="container nopadding-x-md" id="board-ctn">
+        <div class="py-5" id="board">
+          <article class="post-content mx-auto">
+            <!-- SEO header -->
+            <h1 style="display: none">Dubbo线程池隔离以及动态线程池</h1>
+            
+              <p class="note note-info">
+                
+                  本文最后更新于：2022年7月11日 下午
+                
+              </p>
+            
+            <div class="markdown-body">
+              <p>很久没发博客了，想着偶尔还是来写写东西~</p>
+<blockquote>
+<p>内容中有不少省略的代码，其中也有很多关键性的东西，不过内容和公司框架高度耦合，涉及的东西也比较多，所以也懒得修改后放出来了，直接做了跳过。</p>
+</blockquote>
+<h2 id="1、背景"><a href="#1、背景" class="headerlink" title="1、背景"></a>1、背景</h2><p>在目前我负责的系统中，有一个网关，有http请求，也有dubbo请求，这里主要讨论dubbo接口的请求。</p>
+<p>当然，作为一个网关，必然承载了上万的QPS，在这几万的QPS请求中，有着各种各样的场景，不同场景的RT也不尽相同，少的只有约10-20ms，而高的则达到150-200ms，其中场景当然也分主要场景以及不那么重要的场景。</p>
+<p>在这种QPS的请求下，所有的场景都使用的同一个dubbo线程池，就会带来以下两个问题：</p>
+<p><strong>1、无法隔离场景请求</strong></p>
+<p>有可能低重要度的场景下游出现问题，导致RT升高，从而影响线程池中的其他重要场景</p>
+<p><strong>2、无法精细地看到场景线程池的运行情况</strong></p>
+<p>这个就很好理解了，毕竟即使是线程池监控，那么也只能够看到一个总体的情况，具体某个场景的线程运行情况我们自然无法得知。</p>
+<h2 id="2、解决方案以及扩展"><a href="#2、解决方案以及扩展" class="headerlink" title="2、解决方案以及扩展"></a>2、解决方案以及扩展</h2><h3 id="2-1-dubbo请求流程"><a href="#2-1-dubbo请求流程" class="headerlink" title="2.1 dubbo请求流程"></a>2.1 dubbo请求流程</h3><p>其实想一下还是很简单的，我们只要根据请求参数中的场景信息来选择对应的线程池不就行了嘛。</p>
+<p>这里直接上dubbo请求流程：</p>
+<img src="https://dubbo.apache.org/imgs/dev/dubbo-framework.jpg" srcset="/img/loading.gif" style="zoom: 80%;" />
+
+<p>我们可以先把目光放到整张图的右下角，ChannelHandler &lt;- Dispathcer -&gt; ThreadPool，这三个就是我们要关注的地方，当dubbo请求经过server后，会被ChannelHandler处理，ChannelHandler会选择对应的处理器（Dispatcher），而Dispathcer也会相应地选择相应的线程池。</p>
+<p>上一个dubbo的配置就可以很明显地看出来，这个dispatcher是message，而其使用的是core为200的fixedPool。</p>
+<figure class="highlight properties"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><code class="hljs properties"><span class="hljs-meta">dubbo.protocol.threadpool</span>=<span class="hljs-string">fixed</span><br><span class="hljs-meta">dubbo.protocol.threads</span>=<span class="hljs-string">200</span><br><span class="hljs-meta">dubbo.protocol.dispatcher</span>=<span class="hljs-string">message</span><br></code></pre></td></tr></table></figure>
+
+<p>那么这个message dispacther是干了什么呢？</p>
+<p>因为就这个处理器就几行代码，所以我们直接看代码吧。</p>
+<p>我们可以看到MessageDispacther实际只处理了接收的消息，然后把这个消息扔进了一个线程池里执行，这其实和我们的目的很接近了！因为我们想要的其实和这个message处理器很接近，区别就是我们想根据请求参数的不同，把他们扔进不同的线程池里处理。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-keyword">public</span> <span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">MessageOnlyChannelHandler</span> <span class="hljs-keyword">extends</span> <span class="hljs-title">WrappedChannelHandler</span> </span>&#123;<br>    <br>    <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-title">MessageOnlyChannelHandler</span><span class="hljs-params">(ChannelHandler handler, URL url)</span> </span>&#123;<br>        <span class="hljs-keyword">super</span>(handler, url);<br>    &#125;<br>    <br>    <span class="hljs-meta">@Override</span><br>    <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title">received</span><span class="hljs-params">(Channel channel, Object message)</span> <span class="hljs-keyword">throws</span> RemotingException </span>&#123;<br>        ExecutorService executor = getPreferredExecutorService(message);<br>        <span class="hljs-keyword">try</span> &#123;<br>            executor.execute(<span class="hljs-keyword">new</span> ChannelEventRunnable(channel, handler, ChannelState.RECEIVED, message));<br>        &#125; <span class="hljs-keyword">catch</span> (Throwable t) &#123;<br>            <span class="hljs-keyword">if</span>(message <span class="hljs-keyword">instanceof</span> Request &amp;&amp; t <span class="hljs-keyword">instanceof</span> RejectedExecutionException)&#123;<br>                sendFeedback(channel, (Request) message, t);<br>                <span class="hljs-keyword">return</span>;<br>            &#125;<br>            <span class="hljs-keyword">throw</span> <span class="hljs-keyword">new</span> ExecutionException(message, channel, getClass() + <span class="hljs-string">" error when process received event ."</span>, t);<br>        &#125;<br>    &#125;<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<h3 id="2-2-第一步，线程池隔离"><a href="#2-2-第一步，线程池隔离" class="headerlink" title="2.2 第一步，线程池隔离"></a>2.2 第一步，线程池隔离</h3><p>既然这个message dispacther和我们的需求差别已经不远了，就直接写一个这个类的子类吧。</p>
+<p>那么怎么获取这次dubbo的请求参数呢，别急，看received这个方法上的message参数，这个就是这次请求的请求参数，不过这个请求参数是encode的状态，我们需要把这个参数decode一下，转成我们需要的请求参数。因为在dpp网关中，两个推荐请求的入参的父类都是同一个，所以我们可以很轻松地进行类型的转换。</p>
+<p>来看下代码吧，因为代码里有注释，这里就不多解释了。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-function"><span class="hljs-keyword">private</span> String <span class="hljs-title">getRequestScene</span><span class="hljs-params">(Object message)</span> </span>&#123;<br>        <span class="hljs-keyword">try</span> &#123;<br>            <span class="hljs-comment">// 只处理recieved的Request</span><br>            <span class="hljs-keyword">if</span> (message <span class="hljs-keyword">instanceof</span> Request) &#123;<br>                <span class="hljs-comment">// decode Object</span><br>                decode(((Request) message).getData());<br>                RpcInvocation inv = (RpcInvocation) ((Request) message).getData();<br>                <span class="hljs-comment">// 获取具体的请求参数，我们只用获取带场景的那个参数就可以了</span><br>                <span class="hljs-keyword">for</span> (Object requestParam : inv.getArguments()) &#123;<br>                    <span class="hljs-keyword">if</span> (requestParam <span class="hljs-keyword">instanceof</span> YourRequest) &#123;<br>                        <span class="hljs-comment">// 获取场景</span><br>                        <span class="hljs-keyword">return</span> ((YourRequest) requestParam).getScene();<br>                    &#125;<br>                &#125;<br>            &#125;<br>        &#125; <span class="hljs-keyword">catch</span> (Exception e) &#123;<br>            log.warn(<span class="hljs-string">"Decode message error: "</span>, e);<br>        &#125;<br>        <span class="hljs-keyword">return</span> <span class="hljs-keyword">null</span>;<br>    &#125;<br></code></pre></td></tr></table></figure>
+
+<p>有个这个基础，我们就能根据场景来进行线程池的隔离了，剩下的大部分代码其实都是从配置中心读取相应场景的线程池配置等等…</p>
+<p>最后别忘了在dubbo中配置spi拓展，将你写的这个自定义dispacther注册到dubbo中。</p>
+<h3 id="2-2-动态线程池管理"><a href="#2-2-动态线程池管理" class="headerlink" title="2.2 动态线程池管理"></a>2.2 动态线程池管理</h3><p>既然都做到了这一步，为什么不再整点活呢？如果你看过美团那篇动态线程池的文章，其实可以知道：动态管理线程池并不是什么难事，毕竟JDK的线程池已经给你提供了对应的接口修改coreSize以及poolSize等参数，其实只用监听配置中心的变化，根据参数实时更改就可以了~</p>
+<h3 id="2-3-线程池监控"><a href="#2-3-线程池监控" class="headerlink" title="2.3 线程池监控"></a>2.3 线程池监控</h3><p>当然，监控也是必不可少的一环。既然根据场景隔离了线程池，那么我也当然想看各个线程池的运行情况对吧，这个实现起来也很简单。</p>
+<p>其实dubbo本身提供了一个map存放线程池，然后根据handler以及端口等参数从中取(虽然实际上如果你使用默认参数来配置的话里面就一个线程池而已)。</p>
+<p>综上，我们也没必要造轮子，直接把我们创建的自定义线程池扔进dubbo的线程池repo里去就行了，这样在监控线程池的时候，只用从一个地方读取参数，简单多了。</p>
+<p>这里放一个获取dubbo线程池map的代码，因为本身是private的，所以需要反射来获取。</p>
+<p>至于监控，就写个定时任务读取线程池，然后往promethus中扔就行啦~</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-comment">/**</span><br><span class="hljs-comment">     * 获取Dubbo的线程池map</span><br><span class="hljs-comment">     * &lt;br/&gt;</span><br><span class="hljs-comment">     * 获取到后将dpp创建的线程池放入该map中，用作监控</span><br><span class="hljs-comment">     *</span><br><span class="hljs-comment">     * <span class="hljs-doctag">@return</span> Dubbo的线程池map</span><br><span class="hljs-comment">     */</span><br>    <span class="hljs-meta">@SuppressWarnings</span>(<span class="hljs-string">"all"</span>)<br>    <span class="hljs-keyword">private</span> <span class="hljs-keyword">static</span> ConcurrentMap&lt;String, ConcurrentMap&lt;Integer, ExecutorService&gt;&gt; getDubboThreadPoolMap() &#123;<br>        <span class="hljs-keyword">if</span> (executorServiceMap != <span class="hljs-keyword">null</span>) &#123;<br>            <span class="hljs-keyword">return</span> executorServiceMap;<br>        &#125;<br>        ExecutorRepository executorRepository =<br>                ExtensionLoader.getExtensionLoader(ExecutorRepository<span class="hljs-class">.<span class="hljs-keyword">class</span>).<span class="hljs-title">getDefaultExtension</span>()</span>;<br>        <span class="hljs-keyword">if</span> (!(executorRepository <span class="hljs-keyword">instanceof</span> DefaultExecutorRepository)) &#123;<br>            <span class="hljs-keyword">return</span> <span class="hljs-keyword">null</span>;<br>        &#125;<br>        Field data;<br>        <span class="hljs-keyword">try</span> &#123;<br>            data = DefaultExecutorRepository.class.getDeclaredField("data");<br>            data.setAccessible(<span class="hljs-keyword">true</span>);<br>            <span class="hljs-keyword">synchronized</span> (DppSceneThreadPoolRepo<span class="hljs-class">.<span class="hljs-keyword">class</span>) </span>&#123;<br>                <span class="hljs-keyword">if</span> (executorServiceMap != <span class="hljs-keyword">null</span>) &#123;<br>                    <span class="hljs-keyword">return</span> executorServiceMap;<br>                &#125;<br>                executorServiceMap =<br>                        (ConcurrentMap&lt;String, ConcurrentMap&lt;Integer, ExecutorService&gt;&gt;) data.get(executorRepository);<br>                <span class="hljs-keyword">return</span> executorServiceMap;<br>            &#125;<br>        &#125; <span class="hljs-keyword">catch</span> (NoSuchFieldException | IllegalAccessException e) &#123;<br>            log.warn(<span class="hljs-string">"无法获取dubbo线程池map[&#123;&#125;],线程池监控会受到影响"</span>, e.getMessage());<br>            <span class="hljs-keyword">return</span> <span class="hljs-keyword">null</span>;<br>        &#125;<br>    &#125;<br></code></pre></td></tr></table></figure>
+
+
+
+<h2 id="3、上线以及后记"><a href="#3、上线以及后记" class="headerlink" title="3、上线以及后记"></a>3、上线以及后记</h2><p>到这里这篇文章基本就结束了，我们最后实现了一个：动态dubbo线程池，同时还具备场景隔离功能，然后带线程池详细数据监控，可以说基本完美了。</p>
+<p>其实我们还可以继续举一反三，将服务中的各个线程都做到精细化、动态化配置管理以及监控，从而更好地掌握服务的运行情况。</p>
+<p>在写下这篇博客的时候，这个功能已经在生产环境运行了大半年了，其中经历了春节、618等大促，以及大大小小各种压测，提升了服务稳定性，看着监控调线程池也是真爽~</p>
+
+            </div>
+            <hr>
+            <div>
+              <div class="post-metas mb-3">
+                
+                  <div class="post-meta mr-3">
+                    <i class="iconfont icon-category"></i>
+                    
+                      <a class="hover-with-bg" href="/categories/%E7%BC%96%E7%A8%8B/">编程</a>
+                    
+                  </div>
+                
+                
+                  <div class="post-meta">
+                    <i class="iconfont icon-tags"></i>
+                    
+                      <a class="hover-with-bg" href="/tags/%E6%8A%80%E6%9C%AF/">技术</a>
+                    
+                  </div>
+                
+              </div>
+              
+                <p class="note note-warning">本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-sa/4.0/deed.zh" target="_blank" rel="nofollow noopener noopener">CC BY-SA 4.0 协议</a> ，转载请注明出处！</p>
+              
+              
+                <div class="post-prevnext">
+                  <article class="post-prev col-6">
+                    
+                    
+                      <a href="/posts/cache-false-share%20-%20%E5%89%AF%E6%9C%AC/">
+                        <i class="iconfont icon-arrowleft"></i>
+                        <span class="hidden-mobile">Gen3 红蓝宝石有电模拟器野外乱数闪光教程</span>
+                        <span class="visible-mobile">上一篇</span>
+                      </a>
+                    
+                  </article>
+                  <article class="post-next col-6">
+                    
+                    
+                      <a href="/posts/talking-about-blocking-and-coroutine/">
+                        <span class="hidden-mobile">浅谈阻塞以及协程</span>
+                        <span class="visible-mobile">下一篇</span>
+                        <i class="iconfont icon-arrowright"></i>
+                      </a>
+                    
+                  </article>
+                </div>
+              
+            </div>
+
+            
+              <!-- Comments -->
+              <article class="comments" id="comments">
+                
+                
+  <div id="waline"></div>
+  <script type="text/javascript">
+    Fluid.utils.waitElementVisible('waline', function() {
+      Fluid.utils.createScript('https://cdn.jsdelivr.net/npm/@waline/client@0.4.2/dist/Waline.min.js', function () {
+        new Waline({
+          el: "#waline",
+          placeholder: "=w=评论点什么",
+          path: window.location.pathname,
+          avatar: "retro",
+          meta: ["nick","mail","link"],
+          pageSize: "10",
+          lang: "zh-CN",
+          highlight: true,
+          serverURL: "https://waline-9ezh9f665-aowubulao.vercel.app",
+          avatarForce: false,
+          requiredFields: [],
+          emojiCDN: "",
+          emojiMaps: {},
+        });
+      });
+    });
+  </script>
+  <noscript>Please enable JavaScript to view the
+    <a href="https://waline.js.org" target="_blank" rel="nofollow noopener noopener">comments powered by Waline.</a>
+  </noscript>
+
+
+              </article>
+            
+          </article>
+        </div>
+      </div>
+    </div>
+    
+      <div class="d-none d-lg-block col-lg-2 toc-container" id="toc-ctn">
+        <div id="toc">
+  <p class="toc-header"><i class="iconfont icon-list"></i>&nbsp;目录</p>
+  <div class="toc-body" id="toc-body"></div>
+</div>
+
+      </div>
+    
+  </div>
+</div>
+
+<!-- Custom -->
+
+
+    
+
+    
+      <a id="scroll-top-button" href="#" role="button">
+        <i class="iconfont icon-arrowup" aria-hidden="true"></i>
+      </a>
+    
+
+    
+      <div class="modal fade" id="modalSearch" tabindex="-1" role="dialog" aria-labelledby="ModalLabel"
+     aria-hidden="true">
+  <div class="modal-dialog modal-dialog-scrollable modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header text-center">
+        <h4 class="modal-title w-100 font-weight-bold">搜索</h4>
+        <button type="button" id="local-search-close" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body mx-3">
+        <div class="md-form mb-5">
+          <input type="text" id="local-search-input" class="form-control validate">
+          <label data-error="x" data-success="v"
+                 for="local-search-input">关键词</label>
+        </div>
+        <div class="list-group" id="local-search-result"></div>
+      </div>
+    </div>
+  </div>
+</div>
+    
+
+    
+  </main>
+
+  <footer class="text-center mt-5 py-3">
+  <div class="footer-content">
+     <a href="https://blog.neoniou.com" target="_blank" rel="nofollow noopener"><span>Neos Blog</span></a> <i class="iconfont icon-love"></i> <a href="https://github.com/fluid-dev/hexo-theme-fluid" target="_blank" rel="nofollow noopener"><span>Fluid</span></a> 
+  </div>
+  
+
+  
+
+  
+</footer>
+
+<!-- SCRIPTS -->
+
+  <script  src="https://cdn.jsdelivr.net/npm/nprogress@0.2.0/nprogress.min.js" ></script>
+  <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/nprogress@0.2.0/nprogress.min.css" />
+
+  <script>
+    NProgress.configure({"showSpinner":false,"trickleSpeed":100})
+    NProgress.start()
+    window.addEventListener('load', function() {
+      NProgress.done();
+    })
+  </script>
+
+
+<script  src="https://cdn.jsdelivr.net/npm/jquery@3.5.1/dist/jquery.min.js" ></script>
+<script  src="https://cdn.jsdelivr.net/npm/bootstrap@4.5.3/dist/js/bootstrap.min.js" ></script>
+<script  src="/js/debouncer.js" ></script>
+<script  src="/js/events.js" ></script>
+<script  src="/js/plugins.js" ></script>
+
+<!-- Plugins -->
+
+
+  
+    <script  src="/js/lazyload.js" ></script>
+  
+
+
+
+  
+
+
+
+  <script  src="https://cdn.jsdelivr.net/npm/tocbot@4.12.0/dist/tocbot.min.js" ></script>
+
+
+
+  <script  src="https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@3.5.7/dist/jquery.fancybox.min.js" ></script>
+
+
+
+  <script  src="https://cdn.jsdelivr.net/npm/anchor-js@4.3.0/anchor.min.js" ></script>
+
+
+
+  <script defer src="https://cdn.jsdelivr.net/npm/clipboard@2.0.6/dist/clipboard.min.js" ></script>
+
+
+
+
+
+
+  <script  src="https://cdn.jsdelivr.net/npm/typed.js@2.0.11/lib/typed.min.js" ></script>
+  <script>
+    (function (window, document) {
+      var typing = Fluid.plugins.typing;
+      var title = document.getElementById('subtitle').title;
+      
+      typing(title)
+      
+    })(window, document);
+  </script>
+
+
+
+  <script  src="/js/local-search.js" ></script>
+  <script>
+    (function () {
+      var path = "/local-search.xml";
+      var inputArea = document.querySelector("#local-search-input");
+      inputArea.onclick = function () {
+        searchFunc(path, 'local-search-input', 'local-search-result');
+        this.onclick = null
+      }
+    })()
+  </script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<!-- 主题的启动项 保持在最底部 -->
+<script  src="/js/boot.js" ></script>
+
+
+
+</body>
+</html>

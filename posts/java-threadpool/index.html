@@ -1,0 +1,532 @@
+
+
+<!DOCTYPE html>
+<html lang="zh-CN" data-default-color-scheme=&#34;auto&#34;>
+
+
+
+<head>
+  <meta charset="UTF-8">
+  <link rel="apple-touch-icon" sizes="76x76" href="https://neo-img.oss-cn-shanghai.aliyuncs.com/favicon.ico">
+  <link rel="icon" type="image/png" href="https://neo-img.oss-cn-shanghai.aliyuncs.com/favicon.ico">
+  <meta name="viewport"
+        content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, shrink-to-fit=no">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  
+    <meta http-equiv="Content-Security-Policy" content="upgrade-insecure-requests">
+  
+  <meta name="theme-color" content="#2f4154">
+  <meta name="description" content="">
+  <meta name="author" content="Neo">
+  <meta name="keywords" content="">
+  <title>Java线程池的创建方法 - Neo&#39;s Blog</title>
+
+  <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.5.3/dist/css/bootstrap.min.css" />
+
+
+  <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/github-markdown-css@4.0.0/github-markdown.min.css" />
+  <link  rel="stylesheet" href="/lib/hint/hint.min.css" />
+
+  
+    
+    
+      
+      <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/highlight.js@10.4.0/styles/github-gist.min.css" />
+    
+  
+
+  
+    <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@3.5.7/dist/jquery.fancybox.min.css" />
+  
+
+
+
+<!-- 主题依赖的图标库，不要自行修改 -->
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1749284_ba1fz6golrf.css">
+
+
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1736178_kmeydafke9r.css">
+
+
+<link  rel="stylesheet" href="/css/main.css" />
+
+<!-- 自定义样式保持在最底部 -->
+
+
+  <script id="fluid-configs">
+    var Fluid = window.Fluid || {};
+    var CONFIG = {"hostname":"blog.neoniou.com","root":"/","version":"1.8.7","typing":{"enable":true,"typeSpeed":70,"cursorChar":"_","loop":false},"anchorjs":{"enable":true,"element":"h1,h2,h3,h4,h5,h6","placement":"right","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#FC5185","options":{"showSpinner":false,"trickleSpeed":100}},"copy_btn":true,"image_zoom":{"enable":true},"toc":{"enable":true,"headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0},"lazyload":{"enable":true,"onlypost":false},"web_analytics":{"enable":false,"baidu":null,"google":null,"gtag":null,"tencent":{"sid":null,"cid":null},"woyaola":null,"cnzz":null,"leancloud":{"app_id":null,"app_key":null,"server_url":null}}};
+  </script>
+  <script  src="/js/utils.js" ></script>
+  <script  src="/js/color-schema.js" ></script>
+<meta name="generator" content="Hexo 4.2.1"></head>
+
+
+<body>
+  <header style="height: 70vh;">
+    <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
+  <div class="container">
+    <a class="navbar-brand"
+       href="/">&nbsp;<strong>Neo</strong>&nbsp;</a>
+
+    <button id="navbar-toggler-btn" class="navbar-toggler" type="button" data-toggle="collapse"
+            data-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <div class="animated-icon"><span></span><span></span><span></span></div>
+    </button>
+
+    <!-- Collapsible content -->
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav ml-auto text-center">
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/">
+                <i class="iconfont icon-home-fill"></i>
+                首页
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/archives/">
+                <i class="iconfont icon-archive-fill"></i>
+                归档
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/categories/">
+                <i class="iconfont icon-category-fill"></i>
+                分类
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/tags/">
+                <i class="iconfont icon-tags-fill"></i>
+                标签
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/about/">
+                <i class="iconfont icon-user-fill"></i>
+                关于
+              </a>
+            </li>
+          
+        
+        
+          <li class="nav-item" id="search-btn">
+            <a class="nav-link" data-toggle="modal" data-target="#modalSearch">&nbsp;<i
+                class="iconfont icon-search"></i>&nbsp;</a>
+          </li>
+        
+        
+          <li class="nav-item" id="color-toggle-btn">
+            <a class="nav-link" href="javascript:">&nbsp;<i
+                class="iconfont icon-dark" id="color-toggle-icon"></i>&nbsp;</a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</nav>
+
+    <div class="banner" id="banner" parallax=true
+         style="background: url('https://neo-img.oss-cn-shanghai.aliyuncs.com/pixiv/82542737_p0.jpg') no-repeat center center;
+           background-size: cover;">
+      <div class="full-bg-img">
+        <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0.3)">
+          <div class="page-header text-center fade-in-up">
+            <span class="h2" id="subtitle" title="Java线程池的创建方法">
+              
+            </span>
+
+            
+              <div class="mt-3">
+  
+  
+    <span class="post-meta">
+      <i class="iconfont icon-date-fill" aria-hidden="true"></i>
+      <time datetime="2020-03-28 20:08" pubdate>
+        2020年3月28日 晚上
+      </time>
+    </span>
+  
+</div>
+
+<div class="mt-1">
+  
+    
+    <span class="post-meta mr-2">
+      <i class="iconfont icon-chart"></i>
+      899 字
+    </span>
+  
+
+  
+    
+    <span class="post-meta mr-2">
+      <i class="iconfont icon-clock-fill"></i>
+      
+      
+      10
+       分钟
+    </span>
+  
+
+  
+  
+</div>
+
+            
+          </div>
+
+          
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    
+      
+
+<div class="container-fluid nopadding-x">
+  <div class="row nomargin-x">
+    <div class="d-none d-lg-block col-lg-2"></div>
+    <div class="col-lg-8 nopadding-x-md">
+      <div class="container nopadding-x-md" id="board-ctn">
+        <div class="py-5" id="board">
+          <article class="post-content mx-auto">
+            <!-- SEO header -->
+            <h1 style="display: none">Java线程池的创建方法</h1>
+            
+              <p class="note note-info">
+                
+                  本文最后更新于：2022年12月19日 晚上
+                
+              </p>
+            
+            <div class="markdown-body">
+              <h2 id="1、自动创建（不推荐）"><a href="#1、自动创建（不推荐）" class="headerlink" title="1、自动创建（不推荐）"></a>1、自动创建（不推荐）</h2><p>在Java8以后，线程池的创建方法有5种，这里介绍3种常用的方法。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><code class="hljs java">ExecutorService threadPool = Executors.newFixedThreadPool(<span class="hljs-number">5</span>);<br>ExecutorService threadPool = Executors.newSingleThreadExecutor();<br>ExecutorService threadPool = Executors.newCachedThreadPool();<br></code></pre></td></tr></table></figure>
+
+<p>第一种是创建一个定容的线程池；</p>
+<p>第二种是创建一个只有一个线程容量的线程池；</p>
+<p>第三种是创建一个带缓存可扩容的线程池。</p>
+<p>但是在使用时，阿里的代码检测工具会提示手动建立线程池。看一下源码：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">static</span> ExecutorService <span class="hljs-title">newFixedThreadPool</span><span class="hljs-params">(<span class="hljs-keyword">int</span> nThreads)</span> </span>&#123;<br>        <span class="hljs-keyword">return</span> <span class="hljs-keyword">new</span> ThreadPoolExecutor(nThreads, nThreads,<br>                                      <span class="hljs-number">0L</span>, TimeUnit.MILLISECONDS,<br>                                      <span class="hljs-keyword">new</span> LinkedBlockingQueue&lt;Runnable&gt;());<br>&#125;<br><br><span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">static</span> ExecutorService <span class="hljs-title">newSingleThreadExecutor</span><span class="hljs-params">()</span> </span>&#123;<br>        <span class="hljs-keyword">return</span> <span class="hljs-keyword">new</span> FinalizableDelegatedExecutorService<br>            (<span class="hljs-keyword">new</span> ThreadPoolExecutor(<span class="hljs-number">1</span>, <span class="hljs-number">1</span>,<br>                                    <span class="hljs-number">0L</span>, TimeUnit.MILLISECONDS,<br>                                    <span class="hljs-keyword">new</span> LinkedBlockingQueue&lt;Runnable&gt;()));<br>&#125;<br><br><span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">static</span> ExecutorService <span class="hljs-title">newCachedThreadPool</span><span class="hljs-params">()</span> </span>&#123;<br>    <span class="hljs-keyword">return</span> <span class="hljs-keyword">new</span> ThreadPoolExecutor(<span class="hljs-number">0</span>, Integer.MAX_VALUE,<br>                                  <span class="hljs-number">60L</span>, TimeUnit.SECONDS,<br>                                  <span class="hljs-keyword">new</span> SynchronousQueue&lt;Runnable&gt;());<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p>三种方法底层其实都是使用了new ThreadPoolExecutor的方式创建线程池，第三种的最大线程容量甚至达到了Integer.MAX_VALUE，如果允许线程池无限扩容的话，会创建非常多的线程。而前两种的主要问题是堆积的请求处理队列可能会耗费非常大的内存，甚至OOM。</p>
+<p>所以如何手动创建线程池是我们需要学习的。</p>
+<h2 id="手动创建线程池"><a href="#手动创建线程池" class="headerlink" title="手动创建线程池"></a>手动创建线程池</h2><p>我们可以通过new ThreadPoolExecutor的方式手动创建线程池，首先我们要了解构造方法的七个参数的具体含义。</p>
+<p>直接看代码：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-title">ThreadPoolExecutor</span><span class="hljs-params">(</span></span><br><span class="hljs-function"><span class="hljs-params">    <span class="hljs-keyword">int</span> corePoolSize,</span></span><br><span class="hljs-function"><span class="hljs-params">    <span class="hljs-keyword">int</span> maximumPoolSize,</span></span><br><span class="hljs-function"><span class="hljs-params">    <span class="hljs-keyword">long</span> keepAliveTime,</span></span><br><span class="hljs-function"><span class="hljs-params">    TimeUnit unit,</span></span><br><span class="hljs-function"><span class="hljs-params">    BlockingQueue&lt;Runnable&gt; workQueue,</span></span><br><span class="hljs-function"><span class="hljs-params">    ThreadFactory threadFactory,</span></span><br><span class="hljs-function"><span class="hljs-params">    RejectedExecutionHandler handler)</span></span><br></code></pre></td></tr></table></figure>
+
+<p>corePoolSize：线程池中的常驻核心数线程；</p>
+<p>maximumPoolSize：线程池能够容纳的同时执行的最大线程数；</p>
+<p>keepAliveTime：多余的线程的存活时间；</p>
+<p>unit：对keepAliveTime 的时间单位；</p>
+<p>workQueue：任务队列，被提交但尚未被执行的任务；</p>
+<p>threadFactory：表示生成线程池中工作线程的线程工厂，用于创建线程；</p>
+<p>handler：拒绝策略，表示当队列满了并且工作线程大于等于线程池的最大线程数。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><code class="hljs java">ExecutorService threadPool = <span class="hljs-keyword">new</span> ThreadPoolExecutor(<span class="hljs-number">2</span>,<br>            <span class="hljs-number">5</span>,<br>            <span class="hljs-number">1L</span>,<br>            TimeUnit.SECONDS,<br>            <span class="hljs-keyword">new</span> LinkedBlockingQueue&lt;Runnable&gt;(<span class="hljs-number">3</span>),<br>            Executors.defaultThreadFactory(),<br>            <span class="hljs-keyword">new</span> ThreadPoolExecutor.AbortPolicy());<br></code></pre></td></tr></table></figure>
+
+<h3 id="拒绝策略"><a href="#拒绝策略" class="headerlink" title="拒绝策略"></a>拒绝策略</h3><p>定义：等待队列也已经排满了，再也塞不下新的任务了同时，线程池的max也到达了，无法接续为新任务服务这时我们需要拒绝策略机制合理的处理这个问题。</p>
+<p>JDK内置的拒绝策略：</p>
+<ul>
+<li><p>AbortPolicy(默认): 直接抛出RejectedException异常，阻止系统正常运行；</p>
+</li>
+<li><p>CallerRunPolicy:  不会抛异常，也不会抛弃任务，而是会将某些任务回退到调用它的线程。</p>
+<p>如：main调用了thread-pool-0计算1+1，而此时线程池已满，启动拒绝策略，会将这个任务返还给main线程，让main线程执行计算；</p>
+</li>
+<li><p>DiscardOldestPolicy: 抛弃队列中等待最久的任务，然后把当前任务加入队列中尝试再次提交；</p>
+</li>
+<li><p>DiscardPolicy: 直接抛弃任务，不予任何处理，也不抛出异常。如果允许任务丢失，这是最好的方法。</p>
+</li>
+</ul>
+<h3 id="合理配置线程池的容量"><a href="#合理配置线程池的容量" class="headerlink" title="合理配置线程池的容量"></a>合理配置线程池的容量</h3><p>如何合理配置线程池？</p>
+<h4 id="CPU密集型"><a href="#CPU密集型" class="headerlink" title="CPU密集型"></a>CPU密集型</h4><p>CPU密集的意思是该任务需要大量的计算，而没有阻塞，CPU一直进行计算；</p>
+<p>一般公式：CPU核数+1个线程的线程池。</p>
+<h4 id="I-O密集型"><a href="#I-O密集型" class="headerlink" title="I/O密集型"></a>I/O密集型</h4><p>IO密集型不需要大量计算，而需要进行大量IO操作阻塞。</p>
+<p>IO密集型，大多线程都会阻塞，所以需要尽可能多的线程：</p>
+<ul>
+<li>CPU核数 / (1 - 阻塞系数) 阻塞系数在0.8-0.9之间</li>
+<li>CPU核数 * 2</li>
+</ul>
+<p>两种公式视场合使用。</p>
+
+            </div>
+            <hr>
+            <div>
+              <div class="post-metas mb-3">
+                
+                  <div class="post-meta mr-3">
+                    <i class="iconfont icon-category"></i>
+                    
+                      <a class="hover-with-bg" href="/categories/%E7%BC%96%E7%A8%8B/">编程</a>
+                    
+                  </div>
+                
+                
+                  <div class="post-meta">
+                    <i class="iconfont icon-tags"></i>
+                    
+                      <a class="hover-with-bg" href="/tags/Java/">Java</a>
+                    
+                  </div>
+                
+              </div>
+              
+                <p class="note note-warning">本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-sa/4.0/deed.zh" target="_blank" rel="nofollow noopener noopener">CC BY-SA 4.0 协议</a> ，转载请注明出处！</p>
+              
+              
+                <div class="post-prevnext">
+                  <article class="post-prev col-6">
+                    
+                    
+                      <a href="/posts/andriod-noroot-cap/">
+                        <i class="iconfont icon-arrowleft"></i>
+                        <span class="hidden-mobile">Ssl pinning下的安卓免root抓包</span>
+                        <span class="visible-mobile">上一篇</span>
+                      </a>
+                    
+                  </article>
+                  <article class="post-next col-6">
+                    
+                    
+                      <a href="/posts/volatile/">
+                        <span class="hidden-mobile">Java由volatile深入的一些问题</span>
+                        <span class="visible-mobile">下一篇</span>
+                        <i class="iconfont icon-arrowright"></i>
+                      </a>
+                    
+                  </article>
+                </div>
+              
+            </div>
+
+            
+              <!-- Comments -->
+              <article class="comments" id="comments">
+                
+                
+  <div id="waline"></div>
+  <script type="text/javascript">
+    Fluid.utils.waitElementVisible('waline', function() {
+      Fluid.utils.createScript('https://cdn.jsdelivr.net/npm/@waline/client@0.4.2/dist/Waline.min.js', function () {
+        new Waline({
+          el: "#waline",
+          placeholder: "=w=评论点什么",
+          path: window.location.pathname,
+          avatar: "retro",
+          meta: ["nick","mail","link"],
+          pageSize: "10",
+          lang: "zh-CN",
+          highlight: true,
+          serverURL: "https://waline-9ezh9f665-aowubulao.vercel.app",
+          avatarForce: false,
+          requiredFields: [],
+          emojiCDN: "",
+          emojiMaps: {},
+        });
+      });
+    });
+  </script>
+  <noscript>Please enable JavaScript to view the
+    <a href="https://waline.js.org" target="_blank" rel="nofollow noopener noopener">comments powered by Waline.</a>
+  </noscript>
+
+
+              </article>
+            
+          </article>
+        </div>
+      </div>
+    </div>
+    
+      <div class="d-none d-lg-block col-lg-2 toc-container" id="toc-ctn">
+        <div id="toc">
+  <p class="toc-header"><i class="iconfont icon-list"></i>&nbsp;目录</p>
+  <div class="toc-body" id="toc-body"></div>
+</div>
+
+      </div>
+    
+  </div>
+</div>
+
+<!-- Custom -->
+
+
+    
+
+    
+      <a id="scroll-top-button" href="#" role="button">
+        <i class="iconfont icon-arrowup" aria-hidden="true"></i>
+      </a>
+    
+
+    
+      <div class="modal fade" id="modalSearch" tabindex="-1" role="dialog" aria-labelledby="ModalLabel"
+     aria-hidden="true">
+  <div class="modal-dialog modal-dialog-scrollable modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header text-center">
+        <h4 class="modal-title w-100 font-weight-bold">搜索</h4>
+        <button type="button" id="local-search-close" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body mx-3">
+        <div class="md-form mb-5">
+          <input type="text" id="local-search-input" class="form-control validate">
+          <label data-error="x" data-success="v"
+                 for="local-search-input">关键词</label>
+        </div>
+        <div class="list-group" id="local-search-result"></div>
+      </div>
+    </div>
+  </div>
+</div>
+    
+
+    
+  </main>
+
+  <footer class="text-center mt-5 py-3">
+  <div class="footer-content">
+     <a href="https://blog.neoniou.com" target="_blank" rel="nofollow noopener"><span>Neos Blog</span></a> <i class="iconfont icon-love"></i> <a href="https://github.com/fluid-dev/hexo-theme-fluid" target="_blank" rel="nofollow noopener"><span>Fluid</span></a> 
+  </div>
+  
+
+  
+
+  
+</footer>
+
+<!-- SCRIPTS -->
+
+  <script  src="https://cdn.jsdelivr.net/npm/nprogress@0.2.0/nprogress.min.js" ></script>
+  <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/nprogress@0.2.0/nprogress.min.css" />
+
+  <script>
+    NProgress.configure({"showSpinner":false,"trickleSpeed":100})
+    NProgress.start()
+    window.addEventListener('load', function() {
+      NProgress.done();
+    })
+  </script>
+
+
+<script  src="https://cdn.jsdelivr.net/npm/jquery@3.5.1/dist/jquery.min.js" ></script>
+<script  src="https://cdn.jsdelivr.net/npm/bootstrap@4.5.3/dist/js/bootstrap.min.js" ></script>
+<script  src="/js/debouncer.js" ></script>
+<script  src="/js/events.js" ></script>
+<script  src="/js/plugins.js" ></script>
+
+<!-- Plugins -->
+
+
+  
+    <script  src="/js/lazyload.js" ></script>
+  
+
+
+
+  
+
+
+
+  <script  src="https://cdn.jsdelivr.net/npm/tocbot@4.12.0/dist/tocbot.min.js" ></script>
+
+
+
+  <script  src="https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@3.5.7/dist/jquery.fancybox.min.js" ></script>
+
+
+
+  <script  src="https://cdn.jsdelivr.net/npm/anchor-js@4.3.0/anchor.min.js" ></script>
+
+
+
+  <script defer src="https://cdn.jsdelivr.net/npm/clipboard@2.0.6/dist/clipboard.min.js" ></script>
+
+
+
+
+
+
+  <script  src="https://cdn.jsdelivr.net/npm/typed.js@2.0.11/lib/typed.min.js" ></script>
+  <script>
+    (function (window, document) {
+      var typing = Fluid.plugins.typing;
+      var title = document.getElementById('subtitle').title;
+      
+      typing(title)
+      
+    })(window, document);
+  </script>
+
+
+
+  <script  src="/js/local-search.js" ></script>
+  <script>
+    (function () {
+      var path = "/local-search.xml";
+      var inputArea = document.querySelector("#local-search-input");
+      inputArea.onclick = function () {
+        searchFunc(path, 'local-search-input', 'local-search-result');
+        this.onclick = null
+      }
+    })()
+  </script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<!-- 主题的启动项 保持在最底部 -->
+<script  src="/js/boot.js" ></script>
+
+
+
+</body>
+</html>

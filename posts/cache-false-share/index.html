@@ -1,0 +1,558 @@
+
+
+<!DOCTYPE html>
+<html lang="zh-CN" data-default-color-scheme=&#34;auto&#34;>
+
+
+
+<head>
+  <meta charset="UTF-8">
+  <link rel="apple-touch-icon" sizes="76x76" href="https://neo-img.oss-cn-shanghai.aliyuncs.com/favicon.ico">
+  <link rel="icon" type="image/png" href="https://neo-img.oss-cn-shanghai.aliyuncs.com/favicon.ico">
+  <meta name="viewport"
+        content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, shrink-to-fit=no">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  
+    <meta http-equiv="Content-Security-Policy" content="upgrade-insecure-requests">
+  
+  <meta name="theme-color" content="#2f4154">
+  <meta name="description" content="">
+  <meta name="author" content="Neo">
+  <meta name="keywords" content="">
+  <title>Cache Line和内存伪共享 - Neo&#39;s Blog</title>
+
+  <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.5.3/dist/css/bootstrap.min.css" />
+
+
+  <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/github-markdown-css@4.0.0/github-markdown.min.css" />
+  <link  rel="stylesheet" href="/lib/hint/hint.min.css" />
+
+  
+    
+    
+      
+      <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/highlight.js@10.4.0/styles/github-gist.min.css" />
+    
+  
+
+  
+    <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@3.5.7/dist/jquery.fancybox.min.css" />
+  
+
+
+
+<!-- 主题依赖的图标库，不要自行修改 -->
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1749284_ba1fz6golrf.css">
+
+
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1736178_kmeydafke9r.css">
+
+
+<link  rel="stylesheet" href="/css/main.css" />
+
+<!-- 自定义样式保持在最底部 -->
+
+
+  <script id="fluid-configs">
+    var Fluid = window.Fluid || {};
+    var CONFIG = {"hostname":"blog.neoniou.com","root":"/","version":"1.8.7","typing":{"enable":true,"typeSpeed":70,"cursorChar":"_","loop":false},"anchorjs":{"enable":true,"element":"h1,h2,h3,h4,h5,h6","placement":"right","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#FC5185","options":{"showSpinner":false,"trickleSpeed":100}},"copy_btn":true,"image_zoom":{"enable":true},"toc":{"enable":true,"headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0},"lazyload":{"enable":true,"onlypost":false},"web_analytics":{"enable":false,"baidu":null,"google":null,"gtag":null,"tencent":{"sid":null,"cid":null},"woyaola":null,"cnzz":null,"leancloud":{"app_id":null,"app_key":null,"server_url":null}}};
+  </script>
+  <script  src="/js/utils.js" ></script>
+  <script  src="/js/color-schema.js" ></script>
+<meta name="generator" content="Hexo 4.2.1"></head>
+
+
+<body>
+  <header style="height: 70vh;">
+    <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
+  <div class="container">
+    <a class="navbar-brand"
+       href="/">&nbsp;<strong>Neo</strong>&nbsp;</a>
+
+    <button id="navbar-toggler-btn" class="navbar-toggler" type="button" data-toggle="collapse"
+            data-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <div class="animated-icon"><span></span><span></span><span></span></div>
+    </button>
+
+    <!-- Collapsible content -->
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav ml-auto text-center">
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/">
+                <i class="iconfont icon-home-fill"></i>
+                首页
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/archives/">
+                <i class="iconfont icon-archive-fill"></i>
+                归档
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/categories/">
+                <i class="iconfont icon-category-fill"></i>
+                分类
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/tags/">
+                <i class="iconfont icon-tags-fill"></i>
+                标签
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/about/">
+                <i class="iconfont icon-user-fill"></i>
+                关于
+              </a>
+            </li>
+          
+        
+        
+          <li class="nav-item" id="search-btn">
+            <a class="nav-link" data-toggle="modal" data-target="#modalSearch">&nbsp;<i
+                class="iconfont icon-search"></i>&nbsp;</a>
+          </li>
+        
+        
+          <li class="nav-item" id="color-toggle-btn">
+            <a class="nav-link" href="javascript:">&nbsp;<i
+                class="iconfont icon-dark" id="color-toggle-icon"></i>&nbsp;</a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</nav>
+
+    <div class="banner" id="banner" parallax=true
+         style="background: url('https://neo-img.oss-cn-shanghai.aliyuncs.com/pixiv/82542737_p0.jpg') no-repeat center center;
+           background-size: cover;">
+      <div class="full-bg-img">
+        <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0.3)">
+          <div class="page-header text-center fade-in-up">
+            <span class="h2" id="subtitle" title="Cache Line和内存伪共享">
+              
+            </span>
+
+            
+              <div class="mt-3">
+  
+  
+    <span class="post-meta">
+      <i class="iconfont icon-date-fill" aria-hidden="true"></i>
+      <time datetime="2021-08-20 20:20" pubdate>
+        2021年8月20日 晚上
+      </time>
+    </span>
+  
+</div>
+
+<div class="mt-1">
+  
+    
+    <span class="post-meta mr-2">
+      <i class="iconfont icon-chart"></i>
+      2.5k 字
+    </span>
+  
+
+  
+    
+    <span class="post-meta mr-2">
+      <i class="iconfont icon-clock-fill"></i>
+      
+      
+      31
+       分钟
+    </span>
+  
+
+  
+  
+</div>
+
+            
+          </div>
+
+          
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    
+      
+
+<div class="container-fluid nopadding-x">
+  <div class="row nomargin-x">
+    <div class="d-none d-lg-block col-lg-2"></div>
+    <div class="col-lg-8 nopadding-x-md">
+      <div class="container nopadding-x-md" id="board-ctn">
+        <div class="py-5" id="board">
+          <article class="post-content mx-auto">
+            <!-- SEO header -->
+            <h1 style="display: none">Cache Line和内存伪共享</h1>
+            
+              <p class="note note-info">
+                
+                  本文最后更新于：2021年8月20日 晚上
+                
+              </p>
+            
+            <div class="markdown-body">
+              <h2 id="1、抛砖引玉"><a href="#1、抛砖引玉" class="headerlink" title="1、抛砖引玉"></a>1、抛砖引玉</h2><p>首先看一个概念，摘自：<a href="https://lmax-exchange.github.io/disruptor/disruptor.html#_cache_lines" target="_blank" rel="noopener">LMAX Disruptor: High performance alternative to bounded queues for exchanging data between concurrent threads</a>2.4</p>
+<blockquote>
+<p>The way in which caching is used in modern processors is of immense importance to successful high performance operation. Such processors are enormously efficient at churning through data and instructions held in cache and yet, comparatively, are massively inefficient when a cache miss occurs.</p>
+<p>Our hardware does not move memory around in bytes or words. For efficiency, caches are organised into cache-lines that are typically 32-256 bytes in size, the most common cache-line being 64 bytes. This is the level of granularity at which cache coherency protocols operate. This means that if two variables are in the same cache line, and they are written to by different threads, then they present the same problems of write contention as if they were a single variable. This is a concept know as “false sharing”. For high performance then, it is important to ensure that independent, but concurrently written, variables do not share the same cache-line if contention is to be minimised.</p>
+<p>When accessing memory in a predictable manner CPUs are able to hide the latency cost of accessing main memory by predicting which memory is likely to be accessed next and pre-fetching it into the cache in the background. This only works if the processors can detect a pattern of access such as walking memory with a predictable “stride”. When iterating over the contents of an array the stride is predictable and so memory will be pre-fetched in cache lines, maximizing the efficiency of the access. Strides typically have to be less than 2048 bytes in either direction to be noticed by the processor. However, data structures like linked lists and trees tend to have nodes that are more widely distributed in memory with no predictable stride of access. The lack of a consistent pattern in memory constrains the ability of the system to pre-fetch cache-lines, resulting in main memory accesses which can be more than 2 orders of magnitude less efficient.</p>
+</blockquote>
+<p>把重点内容翻译一下便是：</p>
+<p>我们的硬件不会以字节为单位移动内存。为了提高效率，缓存被组装成大小为 32-256 字节的缓存行，最常见的缓存行是 64 字节。</p>
+<p>如果不了解的话，可以先放在这，我们可以看一个简单的案例</p>
+<h2 id="2、小案例"><a href="#2、小案例" class="headerlink" title="2、小案例"></a>2、小案例</h2><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-meta">@SuppressWarnings</span>(<span class="hljs-string">"all"</span>)<br><span class="hljs-keyword">public</span> <span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">CacheLineTest</span> </span>&#123;<br><br>    <span class="hljs-keyword">private</span> <span class="hljs-keyword">static</span> <span class="hljs-keyword">final</span> <span class="hljs-keyword">long</span> LOOP_TIME = <span class="hljs-number">500000000L</span>;<br><br>    <span class="hljs-keyword">private</span> <span class="hljs-keyword">static</span> <span class="hljs-keyword">final</span> ObjectA OBJECT_A = <span class="hljs-keyword">new</span> ObjectA();<br>    <span class="hljs-keyword">private</span> <span class="hljs-keyword">static</span> <span class="hljs-keyword">final</span> ObjectB OBJECT_B = <span class="hljs-keyword">new</span> ObjectB();<br><br>    <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">static</span> <span class="hljs-keyword">void</span> <span class="hljs-title">main</span><span class="hljs-params">(String[] args)</span> <span class="hljs-keyword">throws</span> InterruptedException </span>&#123;<br>        <span class="hljs-comment">//Case1</span><br>        <span class="hljs-keyword">double</span> case1Time = twoTaskRunner(() -&gt; &#123;<br>            <span class="hljs-keyword">for</span> (<span class="hljs-keyword">long</span> i = <span class="hljs-number">0</span>; i &lt; LOOP_TIME; i++) &#123;<br>                OBJECT_A.num1++;<br>            &#125;<br>        &#125;, () -&gt; &#123;<br>            <span class="hljs-keyword">for</span> (<span class="hljs-keyword">long</span> i = <span class="hljs-number">0</span>; i &lt; LOOP_TIME; i++) &#123;<br>                OBJECT_A.num2++;<br>            &#125;<br>        &#125;);<br>        System.out.println(<span class="hljs-string">"Case1 spend time: "</span> + case1Time);<br>        <span class="hljs-comment">//Case2</span><br>        <span class="hljs-keyword">double</span> case2Time = twoTaskRunner(() -&gt; &#123;<br>            <span class="hljs-keyword">for</span> (<span class="hljs-keyword">long</span> i = <span class="hljs-number">0</span>; i &lt; LOOP_TIME; i++) &#123;<br>                OBJECT_B.num1++;<br>            &#125;<br>        &#125;, () -&gt; &#123;<br>            <span class="hljs-keyword">for</span> (<span class="hljs-keyword">long</span> i = <span class="hljs-number">0</span>; i &lt; LOOP_TIME; i++) &#123;<br>                OBJECT_B.num2++;<br>            &#125;<br>        &#125;);<br>        System.out.println(<span class="hljs-string">"Case2 spend time: "</span> + case2Time);<br>    &#125;<br><br>    <span class="hljs-function"><span class="hljs-keyword">private</span> <span class="hljs-keyword">static</span> <span class="hljs-keyword">double</span> <span class="hljs-title">twoTaskRunner</span><span class="hljs-params">(Runnable task1, Runnable task2)</span> <span class="hljs-keyword">throws</span> InterruptedException </span>&#123;<br>        <span class="hljs-keyword">long</span> start = System.nanoTime();<br>        Thread thread1 = <span class="hljs-keyword">new</span> Thread(task1);<br>        Thread thread2 = <span class="hljs-keyword">new</span> Thread(task2);<br><br>        thread1.start();<br>        thread2.start();<br><br>        thread1.join();<br>        thread2.join();<br>        <span class="hljs-keyword">return</span> (System.nanoTime() - start) / <span class="hljs-number">1E9</span>;<br>    &#125;<br><br>    <span class="hljs-meta">@Data</span><br>    <span class="hljs-keyword">private</span> <span class="hljs-keyword">static</span> <span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">ObjectA</span> </span>&#123;<br><br>        <span class="hljs-keyword">private</span> <span class="hljs-keyword">volatile</span> <span class="hljs-keyword">long</span> num1;<br><br>        <span class="hljs-keyword">private</span> <span class="hljs-keyword">volatile</span> <span class="hljs-keyword">long</span> num2;<br>    &#125;<br><br>    <span class="hljs-meta">@Data</span><br>    <span class="hljs-keyword">private</span> <span class="hljs-keyword">static</span> <span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">ObjectB</span> </span>&#123;<br><br>        <span class="hljs-keyword">private</span> <span class="hljs-keyword">volatile</span> <span class="hljs-keyword">long</span> num1;<br><br>        <span class="hljs-comment">/**</span><br><span class="hljs-comment">         * unused</span><br><span class="hljs-comment">         */</span><br>        <span class="hljs-keyword">private</span> <span class="hljs-keyword">long</span> p1, p2, p3, p4, p5, p6;<br><br>        <span class="hljs-keyword">private</span> <span class="hljs-keyword">volatile</span> <span class="hljs-keyword">long</span> num2;<br><br>        <span class="hljs-comment">/**</span><br><span class="hljs-comment">         * unused</span><br><span class="hljs-comment">         */</span><br>        <span class="hljs-keyword">private</span> <span class="hljs-keyword">long</span> p7, p8, p9, p10, p11, p12;<br>    &#125;<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p>这是一个非常简单易懂的小程序，两个Case都开了两个线程，去递增一个类中不同的两个int变量，唯一的区别是，ObjectB中，有了好几个没有使用的变量，我们可以来看看程序的执行时间</p>
+<table>
+<thead>
+<tr>
+<th>循环次数</th>
+<th>Case1耗时(单位：秒)</th>
+<th>Case2耗时(单位：秒)</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>1M</td>
+<td>0.0273049</td>
+<td>0.0101989</td>
+</tr>
+<tr>
+<td>10M</td>
+<td>0.2711571</td>
+<td>0.0717998</td>
+</tr>
+<tr>
+<td>100M</td>
+<td>2.842166399</td>
+<td>0.6833727</td>
+</tr>
+<tr>
+<td>1000M</td>
+<td>29.0789099</td>
+<td>6.7986955</td>
+</tr>
+</tbody></table>
+<p>很明显，在加了一些无关紧要的变量后，程序的整体性能提升了几倍，这就要引出<strong>伪共享</strong>这概念了</p>
+<h2 id="3、CPU缓存"><a href="#3、CPU缓存" class="headerlink" title="3、CPU缓存"></a>3、CPU缓存</h2><p>伪共享的产生和CPU的缓存机制存在着非常紧密的关系，我们在这可以简单地了解一下CPU的缓存机制</p>
+<p>CPU缓存是介于CPU和内存间的临时存储器，容量很小但是很快，因为CPU的处理速度远大于内存的速度，所以需要设置CPU缓存来加快CPU的处理。</p>
+<p>CPU缓存分为三个级别：L1、L2、L3，越靠近CPU缓存的容量越小，但速度也越快，所以L1缓存最小，但速度最快，L2容量大一些且速度慢于L1。L3容量最大，读写速度最慢，但不同于L1和L2只能被单独一个CPU核独占，L3则是多核共享。</p>
+<p>当CPU执行运算的时候，它先去L1查询所需的数据，然后去L2和L3，如果缓存中没有数据，则所需的数据就去内存中拿。流程越长，则耗费的时间就会越长，为了提高读写性能，则尽可能将数据保存在L1缓存中。</p>
+<p>进入缓存的数据以缓存行(Cache Line)为单位存储的，缓存容量通常为64字节，并且它有效地引用主存地址中的一块地址，以一个long类型的数据为例，它的大小为8字节，即一个缓存行最多可以存储8个，而系统在将数据从内存读入缓存时，并不是只将所需数据读入到缓存中，而是将在同一缓存行的所有数据都读入到缓存中。</p>
+<p>如下图所示，如果CPU1需要读取数据X，则系统读取到缓存中的数据除了X，还会一并将它相邻的数据Y和数据Z读入到缓存中，即使它们可能并不会用到。如果CPU1需要使用数据Y，则只需要从L1中读取数据即可，不需要再从内存中读取数据了，因此可以大大提高数据处理的性能。</p>
+<p><img src="https://img.neoniou.com/blog/20210820210353.png" srcset="/img/loading.gif" alt=""></p>
+<p>以上是CPU缓存的工作原理，在数据的读取阶段，并不会发生任何的问题，但是如果CPU需要向内存中数据时，由于多核多线程的缘故，需要考虑如何解决数据一致性的问题。</p>
+<p>如下图所示，当CPU1读数据X的同时CPU2写数据X，如果没有一定的机制进行并发处理，则会发生数据一致性问题，导致脏数据的出现。</p>
+<p>当前主流保持数据一致性的方式是使用MESI协议，它的具体原理不在本篇详述，感兴趣的读者可以查阅相关资料，它的主要功能通俗地讲就是，如果一个CPU修改了某个缓存行，那么缓存系统的其他的CPU认为该缓存行是脏数据而丢弃，并重新从内存中读取最新的缓存行。</p>
+<p>用下图的模型来解释，即当CPU修改数据X并写入到内存中后，则CPU1原先引用的缓存行将失效，需要重新从内存中读取最新的X数据。</p>
+<p><img src="https://img.neoniou.com/blog/20210820210836.png" srcset="/img/loading.gif" alt=""></p>
+<h2 id="4、伪共享的产生"><a href="#4、伪共享的产生" class="headerlink" title="4、伪共享的产生"></a>4、伪共享的产生</h2><p>以上就是CPU缓存系统的工作机制，而这个机制中就蕴藏着伪共享产生的温床。</p>
+<p>当前很多文献对伪共享的非标准定义为：缓存系统中是以缓存行为单位存储的，当多线程修改互相独立的变量时，如果这些变量共享同一个缓存行，就会无意中影响彼此的性能，即称为伪共享(false sharing)。</p>
+<p>如下图所示，CPU1需要修改的数据X和CPU2需要修改的数据Z在同一个缓存行中，若CPU1先行修改成功，则根据MESI协议，CPU2中L1和L2的缓存行数据将一起失效，缓存系统需要从内存中读取到一批最新的包含有数据Z的缓存行进行修改，这在无形中就会影响到系统的整体性能。</p>
+<p><img src="https://img.neoniou.com/blog/20210820210721.png" srcset="/img/loading.gif" alt=""></p>
+<h2 id="4、伪共享的避免"><a href="#4、伪共享的避免" class="headerlink" title="4、伪共享的避免"></a>4、伪共享的避免</h2><p>既然已经知道了伪共享产生的机制，那如何避免伪共享呢？</p>
+<p>一种方式是在有必要的情况下，可以用单核CPU代替多核CPU来处理任务，根据上述的模型，单核模型则不需要考虑多核之间的数据一致性问题，也不会存在一个缓存行被多核读取的问题，因此也不会存在伪共享的问题。</p>
+<p>另一种方式是采用缓存行主动填充，这也是多核CPU环境下的主流处理方式，它的原理就是在一条有效数据之后主动添加若干条无意义的数据，从而保证该条有效数据可以独占整个缓存行。如下图所示：</p>
+<p><img src="https://img.neoniou.com/blog/20210820211353.png" srcset="/img/loading.gif" alt=""></p>
+<p>通过额外添加的数据，可以保证数据X和数据Z分隔在不同的缓存行中，即使出现缓存失效的状况，也可以做到相互之间互不影响，从而有效提高了系统的处理性能。回到一开始展示的代码，类ObjectB中那些无意义的long型数据其实就是利用上述的原理，作为缓存行的填充来挺高系统的处理效率。</p>
+<h3 id="4-2、java中的做法"><a href="#4-2、java中的做法" class="headerlink" title="4.2、java中的做法"></a>4.2、java中的做法</h3><p>在JDK1.8中，为了解决伪共享的问题，引入了一个注解：@Contended，加上注解，并设置JVM参数：-XX:-RestrictContended，即可避免伪共享：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-comment">/**</span><br><span class="hljs-comment"> * with jvm : -XX:-RestrictContended</span><br><span class="hljs-comment"> */</span><br><span class="hljs-meta">@Data</span><br><span class="hljs-meta">@Contended</span><br><span class="hljs-keyword">private</span> <span class="hljs-keyword">static</span> <span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">ObjectA</span> </span>&#123;<br><br>    <span class="hljs-keyword">private</span> <span class="hljs-keyword">volatile</span> <span class="hljs-keyword">long</span> num1;<br><br>    <span class="hljs-keyword">private</span> <span class="hljs-keyword">volatile</span> <span class="hljs-keyword">long</span> num2;<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p>结果：</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><code class="hljs yaml"><span class="hljs-attr">Case1 spend time:</span> <span class="hljs-number">0.6862326</span><br><span class="hljs-attr">Case2 spend time:</span> <span class="hljs-number">0.6865199</span><br></code></pre></td></tr></table></figure>
+
+<h2 id="5、防止伪共享的一点弊端"><a href="#5、防止伪共享的一点弊端" class="headerlink" title="5、防止伪共享的一点弊端"></a>5、防止伪共享的一点弊端</h2><p>虽然避免伪共享对提高计算机处理性能有非常大的性能提升，但是该种技术当前并未成为主流，并且有许多人都是不了解或者未听说过该种技术。</p>
+<p>原因就是因为它的弊端，使用避免伪共享技术主要会产生以下的弊端：</p>
+<p>1、伪共享产生的条件苛刻且隐形。需要在多线程的环境，并且是对全局变量操作的过程中才会出现，并且伪共享的出现和代码的业务逻辑之间没有任何直接的关联，只能进入硬件层才能发现冲突产生的原因，但大部分开发者并不具备硬件开发或者调试的能力。</p>
+<p>2、降低系统的性能。如果滥用缓存行填充技术，浪费CPU宝贵的cache资源，增加缓存系统读取内存的频率，从而降低了系统的性能。</p>
+
+            </div>
+            <hr>
+            <div>
+              <div class="post-metas mb-3">
+                
+                  <div class="post-meta mr-3">
+                    <i class="iconfont icon-category"></i>
+                    
+                      <a class="hover-with-bg" href="/categories/%E7%BC%96%E7%A8%8B/">编程</a>
+                    
+                  </div>
+                
+                
+                  <div class="post-meta">
+                    <i class="iconfont icon-tags"></i>
+                    
+                      <a class="hover-with-bg" href="/tags/%E6%8A%80%E6%9C%AF/">技术</a>
+                    
+                  </div>
+                
+              </div>
+              
+                <p class="note note-warning">本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-sa/4.0/deed.zh" target="_blank" rel="nofollow noopener noopener">CC BY-SA 4.0 协议</a> ，转载请注明出处！</p>
+              
+              
+                <div class="post-prevnext">
+                  <article class="post-prev col-6">
+                    
+                    
+                      <a href="/posts/gateway-system/">
+                        <i class="iconfont icon-arrowleft"></i>
+                        <span class="hidden-mobile">下级系统网关的搭建</span>
+                        <span class="visible-mobile">上一篇</span>
+                      </a>
+                    
+                  </article>
+                  <article class="post-next col-6">
+                    
+                    
+                      <a href="/posts/spring-boot-nacos-dubbo/">
+                        <span class="hidden-mobile">SpringBoot2.x整合dubbo2.7.8 + nacos1.4.0</span>
+                        <span class="visible-mobile">下一篇</span>
+                        <i class="iconfont icon-arrowright"></i>
+                      </a>
+                    
+                  </article>
+                </div>
+              
+            </div>
+
+            
+              <!-- Comments -->
+              <article class="comments" id="comments">
+                
+                
+  <div id="waline"></div>
+  <script type="text/javascript">
+    Fluid.utils.waitElementVisible('waline', function() {
+      Fluid.utils.createScript('https://cdn.jsdelivr.net/npm/@waline/client@0.4.2/dist/Waline.min.js', function () {
+        new Waline({
+          el: "#waline",
+          placeholder: "=w=评论点什么",
+          path: window.location.pathname,
+          avatar: "retro",
+          meta: ["nick","mail","link"],
+          pageSize: "10",
+          lang: "zh-CN",
+          highlight: true,
+          serverURL: "https://waline-9ezh9f665-aowubulao.vercel.app",
+          avatarForce: false,
+          requiredFields: [],
+          emojiCDN: "",
+          emojiMaps: {},
+        });
+      });
+    });
+  </script>
+  <noscript>Please enable JavaScript to view the
+    <a href="https://waline.js.org" target="_blank" rel="nofollow noopener noopener">comments powered by Waline.</a>
+  </noscript>
+
+
+              </article>
+            
+          </article>
+        </div>
+      </div>
+    </div>
+    
+      <div class="d-none d-lg-block col-lg-2 toc-container" id="toc-ctn">
+        <div id="toc">
+  <p class="toc-header"><i class="iconfont icon-list"></i>&nbsp;目录</p>
+  <div class="toc-body" id="toc-body"></div>
+</div>
+
+      </div>
+    
+  </div>
+</div>
+
+<!-- Custom -->
+
+
+    
+
+    
+      <a id="scroll-top-button" href="#" role="button">
+        <i class="iconfont icon-arrowup" aria-hidden="true"></i>
+      </a>
+    
+
+    
+      <div class="modal fade" id="modalSearch" tabindex="-1" role="dialog" aria-labelledby="ModalLabel"
+     aria-hidden="true">
+  <div class="modal-dialog modal-dialog-scrollable modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header text-center">
+        <h4 class="modal-title w-100 font-weight-bold">搜索</h4>
+        <button type="button" id="local-search-close" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body mx-3">
+        <div class="md-form mb-5">
+          <input type="text" id="local-search-input" class="form-control validate">
+          <label data-error="x" data-success="v"
+                 for="local-search-input">关键词</label>
+        </div>
+        <div class="list-group" id="local-search-result"></div>
+      </div>
+    </div>
+  </div>
+</div>
+    
+
+    
+  </main>
+
+  <footer class="text-center mt-5 py-3">
+  <div class="footer-content">
+     <a href="https://blog.neoniou.com" target="_blank" rel="nofollow noopener"><span>Neos Blog</span></a> <i class="iconfont icon-love"></i> <a href="https://github.com/fluid-dev/hexo-theme-fluid" target="_blank" rel="nofollow noopener"><span>Fluid</span></a> 
+  </div>
+  
+
+  
+
+  
+</footer>
+
+<!-- SCRIPTS -->
+
+  <script  src="https://cdn.jsdelivr.net/npm/nprogress@0.2.0/nprogress.min.js" ></script>
+  <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/nprogress@0.2.0/nprogress.min.css" />
+
+  <script>
+    NProgress.configure({"showSpinner":false,"trickleSpeed":100})
+    NProgress.start()
+    window.addEventListener('load', function() {
+      NProgress.done();
+    })
+  </script>
+
+
+<script  src="https://cdn.jsdelivr.net/npm/jquery@3.5.1/dist/jquery.min.js" ></script>
+<script  src="https://cdn.jsdelivr.net/npm/bootstrap@4.5.3/dist/js/bootstrap.min.js" ></script>
+<script  src="/js/debouncer.js" ></script>
+<script  src="/js/events.js" ></script>
+<script  src="/js/plugins.js" ></script>
+
+<!-- Plugins -->
+
+
+  
+    <script  src="/js/lazyload.js" ></script>
+  
+
+
+
+  
+
+
+
+  <script  src="https://cdn.jsdelivr.net/npm/tocbot@4.12.0/dist/tocbot.min.js" ></script>
+
+
+
+  <script  src="https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@3.5.7/dist/jquery.fancybox.min.js" ></script>
+
+
+
+  <script  src="https://cdn.jsdelivr.net/npm/anchor-js@4.3.0/anchor.min.js" ></script>
+
+
+
+  <script defer src="https://cdn.jsdelivr.net/npm/clipboard@2.0.6/dist/clipboard.min.js" ></script>
+
+
+
+
+
+
+  <script  src="https://cdn.jsdelivr.net/npm/typed.js@2.0.11/lib/typed.min.js" ></script>
+  <script>
+    (function (window, document) {
+      var typing = Fluid.plugins.typing;
+      var title = document.getElementById('subtitle').title;
+      
+      typing(title)
+      
+    })(window, document);
+  </script>
+
+
+
+  <script  src="/js/local-search.js" ></script>
+  <script>
+    (function () {
+      var path = "/local-search.xml";
+      var inputArea = document.querySelector("#local-search-input");
+      inputArea.onclick = function () {
+        searchFunc(path, 'local-search-input', 'local-search-result');
+        this.onclick = null
+      }
+    })()
+  </script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<!-- 主题的启动项 保持在最底部 -->
+<script  src="/js/boot.js" ></script>
+
+
+
+</body>
+</html>
