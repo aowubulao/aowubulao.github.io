@@ -2,6 +2,13 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   
   <url>
+    <loc>https://blog.neoniou.com/posts/yolov5-auto-bangdream/</loc>
+    
+    <lastmod>2023-10-04T13:01:01.777Z</lastmod>
+    
+  </url>
+  
+  <url>
     <loc>https://blog.neoniou.com/posts/using-coroutines-in-java/</loc>
     
     <lastmod>2022-12-19T14:20:30.000Z</lastmod>
